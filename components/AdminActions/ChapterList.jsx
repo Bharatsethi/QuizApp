@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
-import { fetchChapters } from '../services/api';
-import Header from './Header';
+import { fetchChapters } from '../../services/api';
+import Header from '../General/Header';
 
 const ChapterList = ({ route, navigation }) => {
   const { planId } = route.params;

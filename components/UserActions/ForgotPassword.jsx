@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button } from 'react-native';
-import { forgotPassword } from '../services/api';
-import Header from './Header';
+import { forgotPassword } from '../../services/api';
+import Header from '../General/Header';
 
 const ForgotPassword = ({ navigation }) => {
   const [email, setEmail] = useState('');

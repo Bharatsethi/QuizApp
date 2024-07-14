@@ -1,4 +1,36 @@
+# Purpose
+## Usage
+### SuperUser
+1. Login: Use the credentials email: support@poojabharat.com and password: PoojaBharat.
+2. User Management: Navigate to the User List screen to add new Admin users.
+3. Message Management: Post messages that will be visible to all users.
+### Admin
+1. Login: Use the credentials provided by the SuperUser.
+2. Content Management: Create and manage plans, chapters, lessons, topics, and quizzes.
+### User
+1. Register/Login: Create an account or log in to an existing one.
+2. Participate in Quizzes: Navigate through the plans and take quizzes.
+3. Contributing
+4. Contributions are welcome! Please fork the repository and submit pull requests for review.
+
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Troubleshooting
+If you can't get this to work, see the Troubleshooting page.
+
+## Learn More
+To learn more about React Native, take a look at the following resources:
+1. React Native Website - Learn more about React Native.
+2. Getting Started - An overview of React Native and how to set up your environment.
+3. Learn the Basics - A guided tour of the React Native basics.
+4. Blog - Read the latest official React Native Blog posts.
+5. @facebook/react-native - The open-source GitHub repository for React Native.
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+
+# Congratulations!
+You've successfully run and modified your React Native App. 🎉
 
 # Getting Started
 
@@ -77,3 +109,72 @@ To learn more about React Native, take a look at the following resources:
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+
+# Quiz App
+
+Welcome to the Quiz App project! This app is designed to provide an interactive learning experience through quizzes. The app supports multiple user roles, including SuperUser, Admin, and regular users, each with different levels of access and functionality.
+
+## Features
+
+- **User Authentication**: Secure login and registration for users.
+- **Role-Based Access Control**:
+  - **SuperUser**: Can manage all users and assign admin roles.
+  - **Admin**: Can create and manage plans, chapters, lessons, topics, and quizzes.
+  - **User**: Can view and participate in quizzes.
+- **Content Management**:
+  - **Plans**: Organized structure for quizzes.
+  - **Chapters**: Sub-sections within plans.
+  - **Lessons**: Detailed content under chapters.
+  - **Topics**: Specific topics under lessons.
+- **Quiz Functionality**:
+  - Users can take quizzes and view their scores.
+- **Messaging System**: Admin can post messages to users.
+- **Responsive Design**: Optimized for both mobile and desktop views.
+
+## Requirements
+
+- **Backend**:
+  - Node.js
+  - Express.js
+  - MongoDB
+  - bcryptjs
+  - jsonwebtoken
+  - nodemailer
+  - mongoose
+
+- **Frontend**:
+  - React Native
+  - axios
+  - react-navigation
+  - jwt-decode
+  - react-native-vector-icons
+
+## Installation
+
+### Backend
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/quiz-app.git
+   cd QuizApp/backend
+
+2. Install all dependencies
+npm install
+
+3. setup mangoDB
+MONGO_URI=mongodb://localhost:27017/QuizApp
+JWT_SECRET=your-secret-key
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-email-password
+
+4. Navigate to backend folder and Start Backend server for API
+node server.js
+
+5. Navigate to the QuizApp Folder and run 
+npm install
+npx react-native link react-native-vector-icons
+
+6. Run the App
+npx react-native run-android  # For Android
+npx react-native run-ios      # For iOS
+

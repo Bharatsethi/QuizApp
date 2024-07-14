@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
-import { fetchLessons } from '../services/api';
-import Header from './Header';
+import { fetchLessons } from '../../services/api';
+import Header from '../General/Header';
 
 const LessonList = ({ route, navigation }) => {
   const { chapterId } = route.params;

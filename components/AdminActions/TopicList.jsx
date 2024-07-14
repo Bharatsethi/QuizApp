@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
-import { fetchTopics } from '../services/api';
-import Header from './Header';
+import { fetchTopics } from '../../services/api';
+import Header from '../General/Header';
 
 const TopicList = ({ route, navigation }) => {
   const { lessonId } = route.params;

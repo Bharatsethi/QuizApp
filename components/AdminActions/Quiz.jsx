@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button } from 'react-native';
-import { fetchQuestions, submitAnswer } from '../services/api';
-import Header from './Header';
+import { fetchQuestions, submitAnswer } from '../../services/api';
+import Header from '../General/Header';
 
 const Quiz = () => {
   const [questions, setQuestions] = useState([]);

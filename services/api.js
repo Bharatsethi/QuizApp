@@ -22,6 +22,15 @@ export const createChapter = async (chapterData) => {
   return axios.post(`${API_URL}/admin/chapters`, chapterData);
 };
 
+export const createAdmin = async (userData) => {
+  return axios.post(`${API_URL}/superuser/admin`, userData);
+};
+
+export const deleteUser = async (userId) => {
+  return axios.delete(`${API_URL}/superuser/users/${userId}`);
+};
+
+
 export const updateChapter = async (chapterId, chapterData) => {
   return axios.put(`${API_URL}/admin/chapters/${chapterId}`, chapterData);
 };
@@ -38,6 +47,10 @@ export const fetchTopics = async (lessonId) => {
   return axios.get(`${API_URL}/lessons/${lessonId}/topics`);
 };
 
+export const fetchQuestions = async () => {
+  return axios.get(`${API_URL}/questions`);
+};
+
 export const submitAnswer = async (answerData) => {
   return axios.post(`${API_URL}/answers`, answerData);
 };
@@ -48,4 +61,8 @@ export const reportIssue = async (reportData) => {
 
 export const forgotPassword = async (emailData) => {
   return axios.post(`${API_URL}/forgot-password`, emailData);
+};
+
+export const fetchUsers = async () => {
+  return axios.get(`${API_URL}/users`);
 };

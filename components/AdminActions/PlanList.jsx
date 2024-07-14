@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import Header from './Header';
+import Header from '../General/Header';
 
 const PlanList = ({ navigation }) => {
   return (

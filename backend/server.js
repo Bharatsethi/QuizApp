@@ -12,13 +12,35 @@ const nodemailer = require('nodemailer');
 const app = express();
 app.use(express.json());
 
+const SECRET_KEY = 'P00j@8h@r@t';
+
 mongoose.connect('mongodb://localhost:27017/QuizApp', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-mongoose.connection.on('connected', () => {
+mongoose.connection.on('connected', async () => {
   console.log('Connected to MongoDB');
+  // Create SuperUser if not exists
+  const superUserEmail = 'support@poojabharat.com';
+  try {
+    const existingSuperUser = await User.findOne({ email: superUserEmail });
+    if (!existingSuperUser) {
+      const hashedPassword = await bcrypt.hash('PoojaBharat', 10);
+      const superUser = new User({
+        username: 'PoojaBharatQuizAppAdmin',
+        email: superUserEmail,
+        password: hashedPassword,
+        role: 'superuser',
+      });
+      await superUser.save();
+      console.log('SuperUser created');
+    } else {
+      console.log('SuperUser already exists');
+    }
+  } catch (error) {
+    console.error('Error checking or creating SuperUser:', error);
+  }
 });
 
 mongoose.connection.on('error', (err) => {
@@ -44,6 +66,55 @@ app.get('/messages', async (req, res) => {
   const messages = await Message.find();
   res.json(messages);
 });
+
+// fatch all users
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/superuser/admin', async (req, res) => {
+  const { username, email, password, plans } = req.body;
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).send('User already exists');
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const adminUser = new User({ username, password: hashedPassword, email, role: 'admin', plans });
+    await adminUser.save();
+    res.status(201).send('Admin created successfully');
+  } catch (error) {
+    console.error('Error creating admin:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.delete('/superuser/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await User.findByIdAndDelete(id);
+    res.status(200).send('User deleted successfully');
+  } catch (error) {
+    res.status(500).send('Error deleting user');
+  }
+});
+
+
+app.get('/superuser/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
 
 // Update a message
 app.put('/admin/messages/:id', async (req, res) => {
@@ -193,14 +264,11 @@ app.get('/user/profile/:id', async (req, res) => {
   }
 });
 
-
 app.delete('/admin/quizzes/:id', async (req, res) => {
   const { id } = req.params;
   await Quiz.findByIdAndDelete(id);
   res.status(204).send();
 });
-
-
 
 app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
@@ -227,17 +295,16 @@ app.post('/login', async (req, res) => {
   if (!isMatch) {
     return res.status(400).json({ error: 'Invalid email or password' });
   }
-  const token = jwt.sign({ userId: user._id }, 'secretkey');
+  const token = jwt.sign({ userId: user._id, role: user.role }, SECRET_KEY);
   res.json({ token });
 });
-
 
 app.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(400).send('User not found');
   
-  const token = jwt.sign({ userId: user._id }, 'secretkey', { expiresIn: '1h' });
+  const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '1h' });
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -267,7 +334,7 @@ app.post('/forgot-password', async (req, res) => {
 app.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
   try {
-    const decoded = jwt.verify(token, 'secretkey');
+    const decoded = jwt.verify(token, SECRET_KEY);
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await User.findByIdAndUpdate(decoded.userId, { password: hashedPassword });
     res.status(200).send('Password reset successful');

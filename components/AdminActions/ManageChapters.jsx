@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, FlatList, Alert, Picker } from 'react-native';
-import { fetchChapters, createChapter, updateChapter, deleteChapter, fetchPlans } from '../services/api';
-import Header from './Header';
+import { fetchChapters, createChapter, updateChapter, deleteChapter, fetchPlans } from '../../services/api';
+import Header from '../General/Header';
 
 const ManageChapters = () => {
   const [chapters, setChapters] = useState([]);

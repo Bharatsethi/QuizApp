@@ -1,26 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Image, StyleSheet, Text, ScrollView, Dimensions } from 'react-native';
 import axios from 'axios';
+import MessageContext from '../../context/MessageContext';
 
 const Header = () => {
+  const { messages } = useContext(MessageContext);
   const [message, setMessage] = useState('Welcome to the world of transformation');
 
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const response = await axios.get('http://192.168.0.75:3002/messages');
-        const messages = response.data;
-        if (messages.length > 0) {
-          const randomMessage = messages[Math.floor(Math.random() * messages.length)].text;
-          setMessage(randomMessage);
-        }
-      } catch (error) {
-        console.error('Failed to fetch messages:', error);
-      }
-    };
-
-    fetchMessages();
-  }, []);
+    if (messages.length > 0) {
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)].text;
+      setMessage(randomMessage);
+    }
+  }, [messages]);
 
   return (
     <View style={styles.headerContainer}>
