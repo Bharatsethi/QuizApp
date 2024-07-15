@@ -1,23 +1,27 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, Alert, Image, TouchableOpacity } from 'react-native';
 import { register } from '../../services/api';
 import Header from '../General/Header';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { TranslationContext } from '../../context/TranslationContext';
+import styles from '../General/styles';
 
 const Register = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { translations } = useContext(TranslationContext);
 
   const handleRegister = async () => {
     try {
       await register({ username, email, password });
-      Alert.alert('Success', 'User registered successfully');
+      Alert.alert(translations.success, translations.userRegisteredSuccessfully);
       navigation.navigate('Login');
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        Alert.alert('Error', error.response.data.error);
+        Alert.alert(translations.error, error.response.data.error);
       } else {
-        Alert.alert('Error', 'Something went wrong');
+        Alert.alert(translations.error, translations.somethingWentWrong);
       }
     }
   };
@@ -30,91 +34,42 @@ const Register = ({ navigation }) => {
           source={{ uri: 'https://i0.wp.com/poojabharat.com/wp-content/uploads/2020/06/logo.jpeg?fit=500%2C310&ssl=1' }}
           style={styles.logo}
         />
-        <Text style={styles.welcomeText}>Welcome to our Quiz App! Join us and start learning today.</Text>
+        <Text style={styles.welcomeText}>{translations.welcomeMessageRegister}</Text>
       </View>
       <View style={styles.form}>
-        <Text style={styles.label}>Username:</Text>
+        <Text style={styles.label}>{translations.username}:</Text>
         <TextInput 
           style={styles.input} 
           value={username} 
           onChangeText={setUsername} 
-          placeholder="Enter your username"
+          placeholder={translations.enterUsername}
         />
-        <Text style={styles.label}>Email:</Text>
+        <Text style={styles.label}>{translations.email}:</Text>
         <TextInput 
           style={styles.input} 
           value={email} 
           onChangeText={setEmail} 
-          placeholder="Enter your email"
+          placeholder={translations.enterEmail}
           keyboardType="email-address"
         />
-        <Text style={styles.label}>Password:</Text>
+        <Text style={styles.label}>{translations.password}:</Text>
         <TextInput 
           style={styles.input} 
           value={password} 
           onChangeText={setPassword} 
           secureTextEntry 
-          placeholder="Enter your password"
+          placeholder={translations.enterPassword}
         />
         <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Register</Text>
+          <Text style={styles.buttonText}>{translations.register}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#FFA07A' }]} onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.buttonText}>Back to Login</Text>
+        <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => navigation.navigate('Login')}>
+          <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>{translations.backToLogin}</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    resizeMode: 'contain',
-  },
-  welcomeText: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginVertical: 10,
-    color: '#333',
-  },
-  form: {
-    padding: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#333',
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    backgroundColor: '#fff',
-  },
-  button: {
-    backgroundColor: '#1E90FF',
-    paddingVertical: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-});
 
 export default Register;

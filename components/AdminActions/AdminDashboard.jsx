@@ -1,15 +1,18 @@
-// AdminDashboard.jsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from '../General/Header';
-import { fetchPlans } from '../../services/api';
+import { fetchPlans, fetchTranslations } from '../../services/api';
+import styles from '../General/styles';
+import { TranslationContext } from '../../context/TranslationContext';
 
 const AdminDashboard = ({ navigation }) => {
   const [plans, setPlans] = useState([]);
+  const { translations, setTranslationContext } = useContext(TranslationContext);
 
   useEffect(() => {
     fetchPlansData();
+    fetchTranslationsData();
   }, []);
 
   const fetchPlansData = async () => {
@@ -18,6 +21,18 @@ const AdminDashboard = ({ navigation }) => {
       setPlans(response.data);
     } catch (error) {
       console.error('Failed to fetch plans:', error);
+      Alert.alert('Error', 'Failed to fetch plans. Please try again later.');
+    }
+  };
+
+  const fetchTranslationsData = async () => {
+    try {
+      const response = await fetchTranslations();
+      if (response.data) {
+        setTranslationContext(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch translations:', error);
     }
   };
 
@@ -33,9 +48,20 @@ const AdminDashboard = ({ navigation }) => {
     navigation.navigate('ManageMessages');
   };
 
+  const handleManageTranslations = () => {
+    navigation.navigate('ManageTranslations');
+  };
+
+  const handleViewAnswers = (planId) => {
+    navigation.navigate('QuizList', { planId });
+  };
+
   const renderPlanItem = ({ item }) => (
     <View style={styles.planItem}>
       <Text style={styles.planText}>{item.title}</Text>
+      <TouchableOpacity style={styles.viewAnswersButton} onPress={() => handleViewAnswers(item._id)}>
+        <Text style={styles.viewAnswersButtonText}>View Answers</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -45,7 +71,7 @@ const AdminDashboard = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.tileButton} onPress={handleManagePlans}>
           <Icon name="book" size={30} color="#fff" />
-          <Text style={styles.tileButtonText}>Manage Plans</Text>
+          <Text style={styles.tileButtonText}>Manage {translations.plan}s</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tileButton} onPress={handleManageUsers}>
           <Icon name="users" size={30} color="#fff" />
@@ -55,10 +81,14 @@ const AdminDashboard = ({ navigation }) => {
           <Icon name="envelope" size={30} color="#fff" />
           <Text style={styles.tileButtonText}>Manage Messages</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.tileButton} onPress={handleManageTranslations}>
+          <Icon name="language" size={30} color="#fff" />
+          <Text style={styles.tileButtonText}>Manage Translations</Text>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.sectionTitle}>Plans</Text>
+      <Text style={styles.sectionTitle}>{translations.plan}s</Text>
       {plans.length === 0 ? (
-        <Text style={styles.noPlansText}>No plans created yet. Start by creating a plan.</Text>
+        <Text style={styles.noPlansText}>No {translations.plan.toLowerCase()}s created yet. Start by creating a {translations.plan.toLowerCase()}.</Text>
       ) : (
         <FlatList
           data={plans}
@@ -70,62 +100,5 @@ const AdminDashboard = ({ navigation }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f0f0f0',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 20,
-  },
-  tileButton: {
-    backgroundColor: '#1E90FF',
-    paddingVertical: 20,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '30%',
-  },
-  tileButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 10,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 20,
-    color: '#333',
-  },
-  noPlansText: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#333',
-  },
-  plansList: {
-    paddingHorizontal: 20,
-  },
-  planItem: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  planText: {
-    fontSize: 16,
-    color: '#333',
-  },
-});
 
 export default AdminDashboard;

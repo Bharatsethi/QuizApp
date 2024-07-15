@@ -1,28 +1,37 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Alert, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, Alert, Image, TouchableOpacity } from 'react-native';
 import { login } from '../../services/api';
 import Header from '../General/Header';
 import jwt_decode from 'jwt-decode';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { TranslationContext } from '../../context/TranslationContext';
+import styles from '../General/styles';
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { translations } = useContext(TranslationContext);
+
+  // Function to get translation or default text
+  const getTranslation = (key, defaultText) => translations[key] || defaultText;
 
   const handleLogin = async () => {
+    console.log('Attempting to log in...');
     try {
       const response = await login({ email, password });
+      console.log('Login response:', response);
       const { token } = response.data;
-
+  
       let decoded;
       try {
         decoded = jwt_decode(token);
       } catch (error) {
         console.error('Error decoding token:', error);
-        Alert.alert('Error', 'Invalid token received');
+        Alert.alert(getTranslation('error', 'Error'), getTranslation('invalidToken', 'Invalid token'));
         return;
       }
-
-      Alert.alert('Success', 'Logged in successfully');
+  
+      Alert.alert(getTranslation('success', 'Success'), getTranslation('loggedInSuccessfully', 'Logged in successfully'));
       if (decoded.role === 'superuser') {
         navigation.navigate('UserList');
       } else if (decoded.role === 'admin') {
@@ -33,9 +42,9 @@ const Login = ({ navigation }) => {
     } catch (error) {
       console.error('Login error:', error);
       if (error.response && error.response.status === 400) {
-        Alert.alert('Error', error.response.data.error);
+        Alert.alert(getTranslation('error', 'Error'), error.response.data.error);
       } else {
-        Alert.alert('Error', 'Something went wrong');
+        Alert.alert(getTranslation('error', 'Error'), getTranslation('somethingWentWrong', 'Something went wrong'));
       }
     }
   };
@@ -48,87 +57,40 @@ const Login = ({ navigation }) => {
           source={{ uri: 'https://i0.wp.com/poojabharat.com/wp-content/uploads/2020/06/logo.jpeg?fit=500%2C310&ssl=1' }}
           style={styles.logo}
         />
-        <Text style={styles.welcomeText}>Welcome to our Quiz App! Enjoy learning with our interactive quizzes.</Text>
+        <Text style={styles.welcomeText}>{getTranslation('welcomeMessage', 'Welcome to the world of transformation')}</Text>
       </View>
       <View style={styles.form}>
-        <Text style={styles.label}>Email:</Text>
+        <Text style={styles.label}>{getTranslation('email', 'Email')}:</Text>
         <TextInput 
           style={styles.input} 
           value={email} 
           onChangeText={setEmail} 
-          placeholder="Enter your email"
+          placeholder={getTranslation('enterEmail', 'Enter your email')}
           keyboardType="email-address"
         />
-        <Text style={styles.label}>Password:</Text>
+        <Text style={styles.label}>{getTranslation('password', 'Password')}:</Text>
         <TextInput 
           style={styles.input} 
           value={password} 
           onChangeText={setPassword} 
           secureTextEntry 
-          placeholder="Enter your password"
+          placeholder={getTranslation('enterPassword', 'Enter your password')}
         />
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
+          <Icon name="sign-in" size={16} color="#fff" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>{getTranslation('login', 'Login')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#32CD32' }]} onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.buttonText}>Register</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#FFA07A' }]} onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.buttonText}>Forgot Password</Text>
-        </TouchableOpacity>
+        <View style={styles.footerButtons}>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.footerText}>{getTranslation('register', 'Register')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={styles.footerText}>{getTranslation('forgotPassword', 'Forgot Password')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    resizeMode: 'contain',
-  },
-  welcomeText: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginVertical: 10,
-    color: '#333',
-  },
-  form: {
-    padding: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#333',
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    backgroundColor: '#fff',
-  },
-  button: {
-    backgroundColor: '#1E90FF',
-    paddingVertical: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-});
 
 export default Login;

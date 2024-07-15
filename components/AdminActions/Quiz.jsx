@@ -1,45 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, Text, Button, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { fetchQuestions, submitAnswer } from '../../services/api';
 import Header from '../General/Header';
+import styles from '../General/styles';
 
 const Quiz = () => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadQuestions = async () => {
-      const response = await fetchQuestions();
-      setQuestions(response.data);
+      try {
+        const response = await fetchQuestions();
+        setQuestions(response.data);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to load questions');
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadQuestions();
   }, []);
 
   const handleAnswerSubmit = async () => {
-    const { _id } = questions[currentQuestion];
-    const response = await submitAnswer({ questionId: _id, answer: selectedAnswer });
-    if (response.data.isCorrect) {
-      setScore(score + 1);
+    if (selectedAnswer === null) {
+      Alert.alert('Please select an answer before submitting.');
+      return;
+    }
+
+    try {
+      const { _id } = questions[currentQuestion];
+      const response = await submitAnswer({ questionId: _id, answer: selectedAnswer });
+      if (response.data.isCorrect) {
+        setScore(score + 1);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit answer');
     }
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(null);
     } else {
-      // Show final score
-      alert(`Your score is: ${score}`);
+      Alert.alert('Quiz Completed', `Your score is: ${score}`);
     }
   };
 
-  if (questions.length === 0) return <Text>Loading...</Text>;
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <Text>No questions available.</Text>
+      </View>
+    );
+  }
 
   return (
-    <View>
+    <View style={styles.container}>
       <Header />
-      <Text>{questions[currentQuestion].questionText}</Text>
+      <Text style={styles.title}>{questions[currentQuestion].questionText}</Text>
       {questions[currentQuestion].options.map((option, index) => (
         <Button
           key={index}
@@ -47,7 +80,9 @@ const Quiz = () => {
           onPress={() => setSelectedAnswer(option)}
         />
       ))}
-      <Button title="Submit Answer" onPress={handleAnswerSubmit} />
+      <TouchableOpacity style={styles.button} onPress={handleAnswerSubmit}>
+        <Text style={styles.buttonText}>Submit Answer</Text>
+      </TouchableOpacity>
     </View>
   );
 };

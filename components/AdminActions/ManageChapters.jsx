@@ -1,105 +1,81 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, FlatList, Alert, Picker } from 'react-native';
-import { fetchChapters, createChapter, updateChapter, deleteChapter, fetchPlans } from '../../services/api';
+// ManageChapters.jsx
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { fetchChapters, deleteChapter } from '../../services/api';
 import Header from '../General/Header';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import styles from '../General/styles';
+import { TranslationContext } from '../../context/TranslationContext';
 
-const ManageChapters = () => {
+const ManageChapters = ({ route, navigation }) => {
+  const { plan } = route.params || {};
   const [chapters, setChapters] = useState([]);
-  const [title, setTitle] = useState('');
-  const [introduction, setIntroduction] = useState('');
-  const [overview, setOverview] = useState('');
-  const [selectedChapter, setSelectedChapter] = useState(null);
-  const [plans, setPlans] = useState([]);
-  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
-    const getPlansAndChapters = async () => {
-      const plansResponse = await fetchPlans();
-      setPlans(plansResponse.data);
-
-      if (plansResponse.data.length > 0) {
-        setSelectedPlanId(plansResponse.data[0]._id);
-        const chaptersResponse = await fetchChapters(plansResponse.data[0]._id);
-        setChapters(chaptersResponse.data);
-      }
-    };
-
-    getPlansAndChapters();
-  }, []);
-
-  const handleCreateOrUpdate = async () => {
-    try {
-      if (selectedChapter) {
-        await updateChapter(selectedChapter._id, { title, introduction, overview });
-        Alert.alert('Success', 'Chapter updated successfully');
-      } else {
-        await createChapter({ planId: selectedPlanId, title, introduction, overview });
-        Alert.alert('Success', 'Chapter created successfully');
-      }
-      setTitle('');
-      setIntroduction('');
-      setOverview('');
-      setSelectedChapter(null);
-      const chaptersResponse = await fetchChapters(selectedPlanId);
-      setChapters(chaptersResponse.data);
-    } catch (error) {
-      Alert.alert('Error', 'Something went wrong');
+    if (plan && plan._id) {
+      const fetchData = async () => {
+        const response = await fetchChapters(plan._id);
+        setChapters(response.data);
+      };
+      fetchData();
+    } else {
+      Alert.alert('Error', 'Plan information is missing');
+      navigation.goBack();
     }
+  }, [plan, navigation]);
+
+  const handleAddChapter = () => {
+    navigation.navigate('AddChapter', { planId: plan._id });
   };
 
-  const handleEdit = (chapter) => {
-    setTitle(chapter.title);
-    setIntroduction(chapter.introduction);
-    setOverview(chapter.overview);
-    setSelectedChapter(chapter);
+  const handleEditChapter = (chapter) => {
+    navigation.navigate('EditChapter', { chapter });
   };
 
-  const handleDelete = async (chapterId) => {
+  const handleDeleteChapter = async (chapterId) => {
     try {
       await deleteChapter(chapterId);
-      Alert.alert('Success', 'Chapter deleted successfully');
-      const chaptersResponse = await fetchChapters(selectedPlanId);
-      setChapters(chaptersResponse.data);
+      setChapters(chapters.filter(chapter => chapter._id !== chapterId));
+      Alert.alert('Success', `${translations.chapter} deleted successfully`);
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong');
+      Alert.alert('Error', `Failed to delete ${translations.chapter.toLowerCase()}`);
     }
   };
 
-  const handlePlanChange = async (planId) => {
-    setSelectedPlanId(planId);
-    const chaptersResponse = await fetchChapters(planId);
-    setChapters(chaptersResponse.data);
+  const handleManageLessons = (chapter) => {
+    navigation.navigate('ManageLessons', { chapter });
   };
 
   return (
-    <View>
-        <Header />
-      <Text>Select Plan:</Text>
-      <Picker
-        selectedValue={selectedPlanId}
-        onValueChange={(itemValue) => handlePlanChange(itemValue)}
-      >
-        {plans.map((plan) => (
-          <Picker.Item key={plan._id} label={plan.title} value={plan._id} />
-        ))}
-      </Picker>
-      <Text>Title:</Text>
-      <TextInput value={title} onChangeText={setTitle} />
-      <Text>Introduction:</Text>
-      <TextInput value={introduction} onChangeText={setIntroduction} />
-      <Text>Overview:</Text>
-      <TextInput value={overview} onChangeText={setOverview} />
-      <Button title={selectedChapter ? 'Update Chapter' : 'Create Chapter'} onPress={handleCreateOrUpdate} />
+    <View style={styles.container}>
+      <Header />
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManagePlans')}>
+        <Icon name="arrow-left" size={16} color="#fff" />
+        <Text style={styles.backButtonText}>Back to {translations.plan}s</Text>
+      </TouchableOpacity>
+      {plan && <Text style={styles.sectionTitle}>Manage {translations.chapter}s for {plan.title}</Text>}
+      <TouchableOpacity style={styles.addButton} onPress={handleAddChapter}>
+        <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
+        <Text style={styles.addButtonText}>Add {translations.chapter}</Text>
+      </TouchableOpacity>
       <FlatList
         data={chapters}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View>
-            <Text>{item.title}</Text>
-            <Text>{item.introduction}</Text>
-            <Text>{item.overview}</Text>
-            <Button title="Edit" onPress={() => handleEdit(item)} />
-            <Button title="Delete" onPress={() => handleDelete(item._id)} />
+          <View style={styles.planItem}>
+            <Text style={styles.planText}>{item.title}</Text>
+            <View style={styles.iconContainer}>
+              <TouchableOpacity onPress={() => handleEditChapter(item)}>
+                <Icon name="pencil" size={20} color="#000" style={styles.icon} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDeleteChapter(item._id)}>
+                <Icon name="trash" size={20} color="#000" style={styles.icon} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleManageLessons(item)}>
+                <Icon name="book" size={20} color="#000" style={styles.icon} />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />

@@ -1,22 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, TextInput, Button, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import Header from '../General/Header';
+import { TranslationContext } from '../../context/TranslationContext';
+import styles from '../General/styles';
 
 const UserProfile = ({ userId }) => {
+  const { translations } = useContext(TranslationContext);
   const [user, setUser] = useState({});
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [loading, setLoading] = useState(false);
+  const API_URL = 'http://137.154.208.211:3002';
+  
   useEffect(() => {
     const fetchUserProfile = async () => {
+      setLoading(true);
       try {
-        const response = await axios.get(`http://192.168.0.75:3002/user/profile/${userId}`);
+        const response = await axios.get(`http://${API_URL}:3002/user/profile/${userId}`);
         setUser(response.data);
         setName(response.data.name);
         setEmail(response.data.email);
       } catch (error) {
         console.error('Failed to fetch user profile:', error);
+        Alert.alert('Error', 'Failed to fetch user profile');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -24,63 +34,56 @@ const UserProfile = ({ userId }) => {
   }, [userId]);
 
   const handleUpdateProfile = async () => {
+    if (!name.trim() || !email.trim()) {
+      Alert.alert('Error', 'Name and email are required');
+      return;
+    }
+
     try {
-      await axios.put('http://192.168.0.75:3002/user/profile', { userId, name, email, password });
+      await axios.put('http://${API_URL}:3002/user/profile', { userId, name, email, password });
       Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong');
+      Alert.alert('Error', 'Something went wrong while updating the profile');
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Name:</Text>
-      <TextInput 
-        style={styles.input} 
-        value={name} 
-        onChangeText={setName} 
-        placeholder="Enter your name"
-      />
-      <Text style={styles.label}>Email:</Text>
-      <TextInput 
-        style={styles.input} 
-        value={email} 
-        onChangeText={setEmail} 
-        placeholder="Enter your email"
-        keyboardType="email-address"
-      />
-      <Text style={styles.label}>Password:</Text>
-      <TextInput 
-        style={styles.input} 
-        value={password} 
-        onChangeText={setPassword} 
-        placeholder="Enter your password"
-        secureTextEntry
-      />
-      <Button title="Update Profile" onPress={handleUpdateProfile} />
+      <Header />
+      <View style={styles.sectionContainer}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <>
+            <Text style={styles.label}>{translations.username}:</Text>
+            <TextInput 
+              style={styles.input} 
+              value={name} 
+              onChangeText={setName} 
+              placeholder={`Enter your ${translations.username.toLowerCase()}`}
+            />
+            <Text style={styles.label}>{translations.email}:</Text>
+            <TextInput 
+              style={styles.input} 
+              value={email} 
+              onChangeText={setEmail} 
+              placeholder={`Enter your ${translations.email.toLowerCase()}`}
+              keyboardType="email-address"
+            />
+            <Text style={styles.label}>{translations.password}:</Text>
+            <TextInput 
+              style={styles.input} 
+              value={password} 
+              onChangeText={setPassword} 
+              placeholder={`Enter your ${translations.password.toLowerCase()}`}
+              secureTextEntry
+            />
+            <Button title="Update Profile" onPress={handleUpdateProfile} />
+          </>
+        )}
+      </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: '#f5f5f5',
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#333',
-  },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    backgroundColor: '#fff',
-  },
-});
 
 export default UserProfile;

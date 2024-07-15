@@ -1,27 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Dimensions } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Alert, Dimensions, TextInput } from 'react-native';
 import { fetchUsers, deleteUser } from '../../services/api';
+import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { TranslationContext } from '../../context/TranslationContext';
+import styles from '../General/styles';
 
 const UserList = ({ navigation, route }) => {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchText, setSearchText] = useState('');
   const [orientation, setOrientation] = useState('PORTRAIT');
+  const { translations } = useContext(TranslationContext);
 
-  const fetchData = async () => {
-    const response = await fetchUsers();
-    setUsers(response.data);
-  };
+  const t = { ...translations };
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetchUsers();
+        setUsers(response.data);
+        setFilteredUsers(response.data);
+      } catch (error) {
+        Alert.alert(t.error, t.failedToFetchUsers);
+      }
+    };
+
     fetchData();
 
     const updateOrientation = () => {
       const { width, height } = Dimensions.get('window');
-      if (width > height) {
-        setOrientation('LANDSCAPE');
-      } else {
-        setOrientation('PORTRAIT');
-      }
+      setOrientation(width > height ? 'LANDSCAPE' : 'PORTRAIT');
     };
 
     Dimensions.addEventListener('change', updateOrientation);
@@ -34,91 +43,113 @@ const UserList = ({ navigation, route }) => {
 
   useEffect(() => {
     if (route.params?.refresh) {
+      const fetchData = async () => {
+        try {
+          const response = await fetchUsers();
+          setUsers(response.data);
+          setFilteredUsers(response.data);
+        } catch (error) {
+          Alert.alert(t.error, t.failedToFetchUsers);
+        }
+      };
+
       fetchData();
     }
   }, [route.params?.refresh]);
 
   const handleAddAdmin = () => {
-    navigation.navigate('AddAdmin', { onGoBack: fetchData });
+    navigation.navigate('AddAdmin', { onGoBack: refreshUserList });
+  };
+
+  const handleLogout = () => {
+    navigation.navigate('Login');
+  };
+
+  const refreshUserList = async () => {
+    try {
+      const response = await fetchUsers();
+      setUsers(response.data);
+      setFilteredUsers(response.data);
+    } catch (error) {
+      Alert.alert(t.error, t.failedToFetchUsers);
+    }
   };
 
   const handleEditUser = (user) => {
-    navigation.navigate('EditUser', { user, onGoBack: fetchData });
+    navigation.navigate('EditUser', { user });
   };
 
   const handleDeleteUser = async (userId) => {
     try {
       await deleteUser(userId);
-      setUsers(users.filter(user => user._id !== userId));
-      Alert.alert('Success', 'User deleted successfully');
+      setUsers(users.filter((user) => user._id !== userId));
+      setFilteredUsers(users.filter((user) => user._id !== userId));
+      Alert.alert(t.success, t.userDeletedSuccessfully);
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete user');
+      Alert.alert(t.error, t.failedToDeleteUser);
     }
   };
 
-  const renderUserItem = ({ item }) => (
-    <View style={styles.userItem}>
-      <Text style={styles.userText}>{item.username}</Text>
-      {orientation === 'LANDSCAPE' && <Text style={styles.userText}>{item.email}</Text>}
-      <View style={styles.iconContainer}>
-        <TouchableOpacity onPress={() => handleEditUser(item)}>
-          <Icon name="pencil" size={20} color="#000" style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDeleteUser(item._id)}>
-          <Icon name="trash" size={20} color="#000" style={styles.icon} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  const handleSearch = (text) => {
+    setSearchText(text);
+    const filtered = users.filter(user => 
+      user.username.toLowerCase().includes(text.toLowerCase()) || 
+      user.email.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
-        <Text style={styles.addButtonText}>Add Admin</Text>
-      </TouchableOpacity>
+      <Header />
+      <View style={styles.headerContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
+          <Icon name="plus" size={16} color="#fff" style={styles.buttonIcon} />
+          <Text style={styles.addButtonText}>{t.addAdmin}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Icon name="sign-out" size={16} color="#fff" style={styles.buttonIcon} />
+          <Text style={styles.logoutButtonText}>{t.logout}</Text>
+        </TouchableOpacity>
+      </View>
+      <TextInput
+        style={styles.searchInput}
+        value={searchText}
+        onChangeText={handleSearch}
+        placeholder={t.searchPlaceholder}
+      />
+      <View style={styles.tableHeader}>
+        <Text style={styles.tableHeaderText}>{t.username}</Text>
+        {orientation === 'LANDSCAPE' && <Text style={styles.tableHeaderText}>{t.email}</Text>}
+        <Text style={styles.tableHeaderText}>{t.role}</Text>
+        <Text style={styles.tableHeaderText}>{t.actions}</Text>
+      </View>
       <FlatList
-        data={users}
+        data={filteredUsers}
         keyExtractor={(item) => item._id}
-        renderItem={renderUserItem}
+        renderItem={({ item }) => (
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>{item.username}</Text>
+            {orientation === 'LANDSCAPE' && <Text style={styles.tableCell}>{item.email}</Text>}
+            <Text style={styles.tableCell}>{item.role}</Text>
+            <View style={styles.iconContainer}>
+              {item.role !== 'superuser' && (
+                <>
+                  <TouchableOpacity onPress={() => handleEditUser(item)}>
+                    <Icon name="pencil" size={20} color="#000" style={styles.icon} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteUser(item._id)}>
+                    <Icon name="trash" size={20} color="#000" style={styles.icon} />
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </View>
+        )}
+        contentContainerStyle={styles.contentContainer}
       />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: '#f5f5f5',
-    flex: 1,
-  },
-  addButton: {
-    backgroundColor: '#1E90FF',
-    paddingVertical: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  userItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  userText: {
-    fontSize: 16,
-  },
-  iconContainer: {
-    flexDirection: 'row',
-  },
-  icon: {
-    marginLeft: 15,
-  },
-});
 
 export default UserList;
