@@ -21,7 +21,7 @@ const Login = ({ navigation }) => {
       const response = await login({ email, password });
       console.log('Login response:', response);
       const { token } = response.data;
-  
+
       let decoded;
       try {
         decoded = jwt_decode(token);
@@ -30,7 +30,7 @@ const Login = ({ navigation }) => {
         Alert.alert(getTranslation('error', 'Error'), getTranslation('invalidToken', 'Invalid token'));
         return;
       }
-  
+
       Alert.alert(getTranslation('success', 'Success'), getTranslation('loggedInSuccessfully', 'Logged in successfully'));
       if (decoded.role === 'superuser') {
         navigation.navigate('UserList');

@@ -32,9 +32,14 @@ const ForgotPassword = ({ navigation }) => {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
-        <Text style={styles.buttonText}>{translations.sendPasswordResetEmail}</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleForgotPassword}>
+          <Text style={styles.buttonText}>{translations.sendPasswordResetEmail}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.buttonText}>{translations.cancel}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
