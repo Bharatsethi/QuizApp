@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, Image, StyleSheet, Text, ScrollView, Dimensions } from 'react-native';
 import axios from 'axios';
 import MessageContext from '../../context/MessageContext';
+import headerStyles from './headerStyles';
 
 const Header = () => {
   const { messages } = useContext(MessageContext);
@@ -15,43 +16,18 @@ const Header = () => {
   }, [messages]);
 
   return (
-    <View style={styles.headerContainer}>
+    <View style={headerStyles.headerContainer}>
       <Image 
         source={{ uri: 'https://i0.wp.com/poojabharat.com/wp-content/uploads/2020/06/logo.jpeg?fit=500%2C310&ssl=1' }}
-        style={styles.logo}
+        style={headerStyles.logo}
       />
-      <View style={styles.messageContainer}>
+      <View style={headerStyles.messageContainer}>
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-          <Text style={styles.scrollingMessage}>{message}</Text>
+          <Text style={headerStyles.scrollingMessage}>{message}</Text>
         </ScrollView>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  logo: {
-    width: 50,
-    height: 50,
-    resizeMode: 'contain',
-  },
-  messageContainer: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  scrollingMessage: {
-    fontSize: 16,
-    color: '#333',
-    width: Dimensions.get('window').width - 70,
-  },
-});
 
 export default Header;

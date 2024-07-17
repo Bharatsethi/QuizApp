@@ -1,4 +1,6 @@
+// General/buttonStyles.js
 import { StyleSheet } from 'react-native';
+import { COLORS, FONTS } from './colors';
 
 const buttonStyles = StyleSheet.create({
   buttonContainer: {
@@ -6,16 +8,27 @@ const buttonStyles = StyleSheet.create({
     justifyContent: 'space-around',
     marginVertical: 20,
   },
-  primaryButton: {
-    backgroundColor: '#1E90FF',
+  loginButton: {
+    backgroundColor: COLORS.primary,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 4,
     alignItems: 'center',
     marginHorizontal: 5,
+    marginBottom: 10,
+  },
+  primaryButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 4,
+    alignItems: 'center',
+    marginHorizontal: 5,
+    marginBottom: 10,
+    flex: 1,
   },
   secondaryButton: {
-    backgroundColor: '#FFA07A',
+    backgroundColor: COLORS.secondary,
     paddingVertical: 12,
     borderRadius: 4,
     alignItems: 'center',
@@ -23,27 +36,26 @@ const buttonStyles = StyleSheet.create({
     marginBottom: 16,
   },
   cancelButton: {
-    backgroundColor: '#d9534f',
+    backgroundColor: COLORS.danger,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 4,
     alignItems: 'center',
-    marginHorizontal: 5,
+    marginHorizontal: 3,
+    marginBottom: 10,
+    flex: 1,
   },
   disabledButton: {
-    backgroundColor: '#cccccc',
+    backgroundColor: COLORS.disabled,
     paddingVertical: 12,
     borderRadius: 4,
     alignItems: 'center',
     marginHorizontal: 20,
     marginBottom: 16,
   },
-  buttonIcon: {
-    marginRight: 10,
-  },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
   },
   footerButtons: {
@@ -52,7 +64,7 @@ const buttonStyles = StyleSheet.create({
     marginTop: 20,
   },
   addButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: COLORS.success,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -62,27 +74,33 @@ const buttonStyles = StyleSheet.create({
     marginRight: 10,
   },
   addButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
   },
-  backButton: {
-    flexDirection: 'row',
+  footerContainer: {
+    position: 'absolute',
+    bottom: 20,
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1E90FF',
+  },
+  backButton: {
+    backgroundColor: '#555555',
     paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 4,
-    marginHorizontal: 20,
-    marginBottom: 20,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '90%',
   },
   backButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
   },
   tileButton: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: COLORS.primary,
     paddingVertical: 20,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -91,8 +109,8 @@ const buttonStyles = StyleSheet.create({
     width: '30%',
   },
   tileButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
     marginTop: 10,
   },

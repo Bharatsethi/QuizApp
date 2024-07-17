@@ -33,13 +33,14 @@ export const TranslationProvider = ({ children }) => {
     loggedInSuccessfully: 'Logged in successfully',
     passwordResetEmailSent: 'Password reset email sent',
     passwordResetError: 'Error sending password reset email',
-    sendPasswordResetEmail: 'Send Password Reset Email',
+    sendPasswordResetEmail: 'Reset Password',
     optional: 'Optional',
     save: 'Save',
     cancel: 'Cancel',
     actions: 'Actions',
     addAdmin: 'Add Admin',
     logout: 'Logout', // Add this key
+    searchPlaceholder: 'Search users...', // Ensure this key is present
   });
 
   const setTranslationContext = (newTranslations) => {

@@ -1,8 +1,8 @@
-// General/commonStyles.js
+// General/sharedStyles.js
 import { StyleSheet } from 'react-native';
-import { COLORS } from './colors';
+import { COLORS, FONTS } from './colors';
 
-const commonStyles = StyleSheet.create({
+const sharedStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
@@ -32,4 +32,4 @@ const commonStyles = StyleSheet.create({
   },
 });
 
-export default commonStyles;
+export default sharedStyles;

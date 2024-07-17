@@ -44,7 +44,7 @@ const AddPlan = ({ navigation }) => {
         onChangeText={setDescription}
         placeholder={`Enter ${translations.plan.toLowerCase()} description`}
       />
-      <TouchableOpacity style={styles.button} onPress={handleAddPlan}>
+      <TouchableOpacity style={styles.primaryButton} onPress={handleAddPlan}>
         <Text style={styles.buttonText}>Add {translations.plan}</Text>
       </TouchableOpacity>
     </View>

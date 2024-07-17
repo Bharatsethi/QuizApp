@@ -1,65 +1,67 @@
+// General/labelStyles.js
 import { StyleSheet } from 'react-native';
+import { COLORS, FONTS } from './colors';
 
 const labelStyles = StyleSheet.create({
   label: {
-    fontSize: 16,
+    fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
     marginBottom: 5,
     marginLeft: 20,
   },
   planText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
   },
   planAdminText: {
-    fontSize: 14,
-    color: '#555',
+    fontSize: FONTS.sizeSmall,
+    color: COLORS.textSecondary,
   },
   planDescriptionText: {
-    fontSize: 14,
-    color: '#777',
+    fontSize: FONTS.sizeSmall,
+    color: COLORS.textTertiary,
   },
   chapterText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
   },
   lessonText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
   },
   topicText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
   },
   quizText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
   },
   quizQuestion: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
     marginBottom: 10,
   },
   contentText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
   },
   noPlansText: {
     textAlign: 'center',
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
   },
   title: {
-    fontSize: 24,
+    fontSize: FONTS.sizeLarge,
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 20,
-    color: '#333',
+    color: COLORS.textPrimary,
   },
   subheading: {
-    fontSize: 18,
+    fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.textPrimary,
     marginBottom: 10,
   },
 });

@@ -1,71 +1,34 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, Dimensions, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Dimensions, TextInput, StyleSheet } from 'react-native';
 import { fetchUsers, deleteUser } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import styles from '../General/styles';
 
-const UserList = ({ navigation, route }) => {
+const UserList = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [orientation, setOrientation] = useState('PORTRAIT');
   const { translations } = useContext(TranslationContext);
 
-  const t = { ...translations };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetchUsers();
-        setUsers(response.data);
-        setFilteredUsers(response.data);
-      } catch (error) {
-        Alert.alert(t.error, t.failedToFetchUsers);
-      }
-    };
-
-    fetchData();
-
-    const updateOrientation = () => {
-      const { width, height } = Dimensions.get('window');
-      setOrientation(width > height ? 'LANDSCAPE' : 'PORTRAIT');
-    };
-
-    Dimensions.addEventListener('change', updateOrientation);
-    updateOrientation();
-
-    return () => {
-      Dimensions.removeEventListener('change', updateOrientation);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (route.params?.refresh) {
-      const fetchData = async () => {
-        try {
-          const response = await fetchUsers();
-          setUsers(response.data);
-          setFilteredUsers(response.data);
-        } catch (error) {
-          Alert.alert(t.error, t.failedToFetchUsers);
-        }
-      };
-
-      fetchData();
-    }
-  }, [route.params?.refresh]);
-
-  const handleAddAdmin = () => {
-    navigation.navigate('AddAdmin', { onGoBack: refreshUserList });
+  const t = { 
+    ...translations, 
+    searchPlaceholder: translations.searchPlaceholder || 'Search users...',
+    error: translations.error || 'Error',
+    failedToFetchUsers: translations.failedToFetchUsers || 'Failed to fetch users',
+    addAdmin: translations.addAdmin || 'Add Admin',
+    logout: translations.logout || 'Logout',
+    username: translations.username || 'Username',
+    email: translations.email || 'Email',
+    role: translations.role || 'Role',
+    actions: translations.actions || 'Actions',
+    userDeletedSuccessfully: translations.userDeletedSuccessfully || 'User deleted successfully',
+    failedToDeleteUser: translations.failedToDeleteUser || 'Failed to delete user', 
   };
 
-  const handleLogout = () => {
-    navigation.navigate('Login');
-  };
-
-  const refreshUserList = async () => {
+  const fetchData = async () => {
     try {
       const response = await fetchUsers();
       setUsers(response.data);
@@ -73,6 +36,36 @@ const UserList = ({ navigation, route }) => {
     } catch (error) {
       Alert.alert(t.error, t.failedToFetchUsers);
     }
+  };
+
+  useEffect(() => {
+    fetchData();
+
+    const updateOrientation = () => {
+      const { width, height } = Dimensions.get('window');
+      setOrientation(width > height ? 'LANDSCAPE' : 'PORTRAIT');
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateOrientation);
+    updateOrientation();
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', fetchData);
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleAddAdmin = () => {
+    navigation.navigate('AddAdmin');
+  };
+
+  const handleLogout = () => {
+    navigation.navigate('Login');
   };
 
   const handleEditUser = (user) => {
@@ -102,12 +95,12 @@ const UserList = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
+      <View style={localStyles.headerContainer}>
+        <TouchableOpacity style={localStyles.addButton} onPress={handleAddAdmin}>
           <Icon name="plus" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.addButtonText}>{t.addAdmin}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity style={localStyles.logoutButton} onPress={handleLogout}>
           <Icon name="sign-out" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.logoutButtonText}>{t.logout}</Text>
         </TouchableOpacity>
@@ -151,5 +144,42 @@ const UserList = ({ navigation, route }) => {
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  addButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
 
 export default UserList;

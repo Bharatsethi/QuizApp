@@ -31,7 +31,7 @@ const Login = ({ navigation }) => {
         return;
       }
 
-      Alert.alert(getTranslation('success', 'Success'), getTranslation('loggedInSuccessfully', 'Logged in successfully'));
+      //Alert.alert(getTranslation('success', 'Success'), getTranslation('loggedInSuccessfully', 'Logged in successfully'));
       if (decoded.role === 'superuser') {
         navigation.navigate('UserList');
       } else if (decoded.role === 'admin') {
@@ -55,7 +55,7 @@ const Login = ({ navigation }) => {
       <View style={styles.logoContainer}>
         <Image 
           source={{ uri: 'https://i0.wp.com/poojabharat.com/wp-content/uploads/2020/06/logo.jpeg?fit=500%2C310&ssl=1' }}
-          style={styles.logo}
+          style={styles.mainlogo}
         />
         <Text style={styles.welcomeText}>{getTranslation('welcomeMessage', 'Welcome to the world of transformation')}</Text>
       </View>
@@ -76,7 +76,7 @@ const Login = ({ navigation }) => {
           secureTextEntry 
           placeholder={getTranslation('enterPassword', 'Enter your password')}
         />
-        <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Icon name="sign-in" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.buttonText}>{getTranslation('login', 'Login')}</Text>
         </TouchableOpacity>

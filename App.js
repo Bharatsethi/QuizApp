@@ -3,219 +3,79 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MessageProvider } from './context/MessageContext';
 import { TranslationProvider } from './context/TranslationContext';
-import ViewChapters from './components/UserActions/ViewChapters';
-import ViewLessons from './components/UserActions/ViewLessons';
-import ViewTopics from './components/UserActions/ViewTopics';
-import ViewTopicContent from './components/UserActions/ViewTopicContent';
 import Login from './components/UserActions/Login';
 import Register from './components/UserActions/Register';
 import ForgotPassword from './components/UserActions/ForgotPassword';
-import UserProfile from './components/UserActions/UserProfile';
-import PlanList from './components/AdminActions/PlanList';
-import ChapterList from './components/AdminActions/ChapterList';
-import LessonList from './components/AdminActions/LessonList';
-import TopicList from './components/AdminActions/TopicList';
-import Quiz from './components/AdminActions/Quiz';
-import AdminDashboard from './components/AdminActions/AdminDashboard';
-import ManagePlans from './components/AdminActions/ManagePlans';
-import ManageChapters from './components/AdminActions/ManageChapters';
-import ManageLessons from './components/AdminActions/ManageLessons';
-import ManageMessages from './components/AdminActions/ManageMessages';
-import UserList from './components/SuperAdminActions/UserList';
-import EditUser from './components/SuperAdminActions/EditUser';
-import AddAdmin from './components/SuperAdminActions/AddAdmin';
-import EditChapter from './components/AdminActions/EditChapter';
-import AddChapter from './components/AdminActions/AddChapter';
-import AddLesson from './components/AdminActions/AddLesson';
-import EditLesson from './components/AdminActions/EditLesson';
-import AddTopic from './components/AdminActions/AddTopic';
-import EditTopic from './components/AdminActions/EditTopic';
-import ManageTranslations from './components/AdminActions/ManageTranslations';
-import UserPlanList from './components/UserActions/UserPlanList';
-import PlanDetails from './components/UserActions/PlanDetails'; // Ensure this is created
-import ViewQuiz from './components/UserActions/ViewQuiz';
-import QuizList from './components/AdminActions/QuizList';
-import ViewAnswers from './components/AdminActions/ViewAnswers';
-import AddPlan from './components/AdminActions/AddPlan'; // New Component
 
 const Stack = createStackNavigator();
 
-function App() {
+const screenOptions = {
+  headerShown: false,
+};
+
+const AdminScreens = [
+  { name: 'PlanList', component: React.lazy(() => import('./components/AdminActions/PlanList')) },
+  { name: 'ChapterList', component: React.lazy(() => import('./components/AdminActions/ChapterList')) },
+  { name: 'LessonList', component: React.lazy(() => import('./components/AdminActions/LessonList')) },
+  { name: 'TopicList', component: React.lazy(() => import('./components/AdminActions/TopicList')) },
+  { name: 'Quiz', component: React.lazy(() => import('./components/AdminActions/Quiz')) },
+  { name: 'AdminDashboard', component: React.lazy(() => import('./components/AdminActions/AdminDashboard')) },
+  { name: 'ManagePlans', component: React.lazy(() => import('./components/AdminActions/ManagePlans')) },
+  { name: 'ManageChapters', component: React.lazy(() => import('./components/AdminActions/ManageChapters')) },
+  { name: 'ManageLessons', component: React.lazy(() => import('./components/AdminActions/ManageLessons')) },
+  { name: 'AddChapter', component: React.lazy(() => import('./components/AdminActions/AddChapter')) },
+  { name: 'EditChapter', component: React.lazy(() => import('./components/AdminActions/EditChapter')) },
+  { name: 'AddLesson', component: React.lazy(() => import('./components/AdminActions/AddLesson')) },
+  { name: 'EditLesson', component: React.lazy(() => import('./components/AdminActions/EditLesson')) },
+  { name: 'AddTopic', component: React.lazy(() => import('./components/AdminActions/AddTopic')) },
+  { name: 'EditTopic', component: React.lazy(() => import('./components/AdminActions/EditTopic')) },
+  { name: 'ManageTranslations', component: React.lazy(() => import('./components/AdminActions/ManageTranslations')) },
+  { name: 'QuizList', component: React.lazy(() => import('./components/AdminActions/QuizList')) },
+  { name: 'ViewAnswers', component: React.lazy(() => import('./components/AdminActions/ViewAnswers')) },
+  { name: 'AddPlan', component: React.lazy(() => import('./components/AdminActions/AddPlan')) },
+  { name: 'ManageMessages', component: React.lazy(() => import('./components/AdminActions/ManageMessages')) },
+];
+
+const SuperAdminScreens = [
+  { name: 'UserList', component: React.lazy(() => import('./components/SuperAdminActions/UserList')) },
+  { name: 'EditUser', component: React.lazy(() => import('./components/SuperAdminActions/EditUser')) },
+  { name: 'AddAdmin', component: React.lazy(() => import('./components/SuperAdminActions/AddAdmin')) },
+];
+
+const UserScreens = [
+  { name: 'UserProfile', component: React.lazy(() => import('./components/UserActions/UserProfile')) },
+  { name: 'UserPlanList', component: React.lazy(() => import('./components/UserActions/UserPlanList')) },
+  { name: 'PlanDetails', component: React.lazy(() => import('./components/UserActions/PlanDetails')) },
+  { name: 'ViewChapters', component: React.lazy(() => import('./components/UserActions/ViewChapters')) },
+  { name: 'ViewLessons', component: React.lazy(() => import('./components/UserActions/ViewLessons')) },
+  { name: 'ViewTopics', component: React.lazy(() => import('./components/UserActions/ViewTopics')) },
+  { name: 'ViewTopicContent', component: React.lazy(() => import('./components/UserActions/ViewTopicContent')) },
+  { name: 'ViewQuiz', component: React.lazy(() => import('./components/UserActions/ViewQuiz')) },
+];
+
+const App = () => {
   return (
     <TranslationProvider>
       <MessageProvider>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName="Login">
-            <Stack.Screen 
-              name="Login" 
-              component={Login} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="Register" 
-              component={Register} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ForgotPassword" 
-              component={ForgotPassword} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="PlanList" 
-              component={PlanList} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ChapterList" 
-              component={ChapterList} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="LessonList" 
-              component={LessonList} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="TopicList" 
-              component={TopicList} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="Quiz" 
-              component={Quiz} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="AdminDashboard" 
-              component={AdminDashboard} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ManagePlans" 
-              component={ManagePlans} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ManageChapters" 
-              component={ManageChapters} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ManageLessons" 
-              component={ManageLessons} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="UserProfile" 
-              component={UserProfile} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="UserList" 
-              component={UserList} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="AddAdmin" 
-              component={AddAdmin} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="EditUser" 
-              component={EditUser} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="AddChapter" 
-              component={AddChapter} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="EditChapter" 
-              component={EditChapter} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="AddLesson" 
-              component={AddLesson} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="EditLesson" 
-              component={EditLesson} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="AddTopic" 
-              component={AddTopic} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="EditTopic" 
-              component={EditTopic} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ManageTranslations" 
-              component={ManageTranslations} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="UserPlanList" 
-              component={UserPlanList} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="PlanDetails" 
-              component={PlanDetails} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ViewChapters" 
-              component={ViewChapters} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ViewLessons" 
-              component={ViewLessons} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ViewTopics" 
-              component={ViewTopics} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ViewTopicContent" 
-              component={ViewTopicContent} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ViewQuiz" 
-              component={ViewQuiz} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="QuizList" 
-              component={QuizList} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="ViewAnswers" 
-              component={ViewAnswers} 
-              options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-              name="AddPlan" 
-              component={AddPlan} 
-              options={{ headerShown: false }} 
-            />
+          <Stack.Navigator initialRouteName="Login" screenOptions={screenOptions}>
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Register" component={Register} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+            {AdminScreens.map((screen) => (
+              <Stack.Screen key={screen.name} name={screen.name} component={screen.component} />
+            ))}
+            {SuperAdminScreens.map((screen) => (
+              <Stack.Screen key={screen.name} name={screen.name} component={screen.component} />
+            ))}
+            {UserScreens.map((screen) => (
+              <Stack.Screen key={screen.name} name={screen.name} component={screen.component} />
+            ))}
           </Stack.Navigator>
         </NavigationContainer>
       </MessageProvider>
     </TranslationProvider>
   );
-}
+};
 
 export default App;

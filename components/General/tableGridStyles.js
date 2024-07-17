@@ -1,4 +1,6 @@
+// General/tableGridStyles.js
 import { StyleSheet } from 'react-native';
+import { COLORS, FONTS } from './colors';
 
 const tableGridStyles = StyleSheet.create({
   tableHeader: {
@@ -6,11 +8,11 @@ const tableGridStyles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: COLORS.gray,
     marginHorizontal: 20,
   },
   tableHeaderText: {
-    fontSize: 16,
+    fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
     flex: 1,
     textAlign: 'center',
@@ -20,11 +22,11 @@ const tableGridStyles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: COLORS.gray,
     marginHorizontal: 20,
   },
   tableCell: {
-    fontSize: 16,
+    fontSize: FONTS.sizeMedium,
     flex: 1,
     textAlign: 'center',
   },
@@ -38,11 +40,11 @@ const tableGridStyles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   planItem: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     padding: 15,
     borderRadius: 8,
     marginVertical: 5,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -57,15 +59,15 @@ const tableGridStyles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: COLORS.gray,
     marginHorizontal: 20,
   },
   lessonItem: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     padding: 15,
     borderRadius: 8,
     marginVertical: 5,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -75,11 +77,11 @@ const tableGridStyles = StyleSheet.create({
     alignItems: 'center',
   },
   topicItem: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     padding: 15,
     borderRadius: 8,
     marginVertical: 5,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -89,11 +91,11 @@ const tableGridStyles = StyleSheet.create({
     alignItems: 'center',
   },
   quizItem: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     padding: 15,
     borderRadius: 8,
     marginVertical: 5,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,

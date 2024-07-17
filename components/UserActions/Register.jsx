@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, Alert, Image, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { register } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -10,9 +10,17 @@ const Register = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { translations } = useContext(TranslationContext);
 
   const handleRegister = async () => {
+    if (!username || !email || !password) {
+      Alert.alert(translations.error, translations.fillAllFields);
+      return;
+    }
+
+    setLoading(true);
+
     try {
       await register({ username, email, password });
       Alert.alert(translations.success, translations.userRegisteredSuccessfully);
@@ -23,19 +31,14 @@ const Register = ({ navigation }) => {
       } else {
         Alert.alert(translations.error, translations.somethingWentWrong);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <Header />
-      <View style={styles.logoContainer}>
-        <Image 
-          source={{ uri: 'https://i0.wp.com/poojabharat.com/wp-content/uploads/2020/06/logo.jpeg?fit=500%2C310&ssl=1' }}
-          style={styles.logo}
-        />
-        <Text style={styles.welcomeText}>{translations.welcomeMessageRegister}</Text>
-      </View>
       <View style={styles.form}>
         <Text style={styles.label}>{translations.username}:</Text>
         <TextInput 
@@ -43,6 +46,7 @@ const Register = ({ navigation }) => {
           value={username} 
           onChangeText={setUsername} 
           placeholder={translations.enterUsername}
+          accessibilityLabel="Username Input"
         />
         <Text style={styles.label}>{translations.email}:</Text>
         <TextInput 
@@ -51,6 +55,8 @@ const Register = ({ navigation }) => {
           onChangeText={setEmail} 
           placeholder={translations.enterEmail}
           keyboardType="email-address"
+          autoCapitalize="none"
+          accessibilityLabel="Email Input"
         />
         <Text style={styles.label}>{translations.password}:</Text>
         <TextInput 
@@ -59,14 +65,21 @@ const Register = ({ navigation }) => {
           onChangeText={setPassword} 
           secureTextEntry 
           placeholder={translations.enterPassword}
+          accessibilityLabel="Password Input"
         />
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>{translations.register}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => navigation.navigate('Login')}>
-          <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>{translations.backToLogin}</Text>
-        </TouchableOpacity>
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleRegister}>
+              <Text style={styles.buttonText}>{translations.register}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.cancelButton, styles.backButton]} onPress={() => navigation.navigate('Login')}>
+              <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
+              <Text style={styles.buttonText}>{translations.backToLogin}</Text>
+            </TouchableOpacity>
+            </View>
+        )}
       </View>
     </View>
   );

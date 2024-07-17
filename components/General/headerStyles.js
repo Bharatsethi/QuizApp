@@ -1,48 +1,70 @@
+// General/headerStyles.js
 import { StyleSheet } from 'react-native';
+import { COLORS, FONTS } from './colors';
+import { Dimensions } from 'react-native';
 
 const headerStyles = StyleSheet.create({
   header: {
-    backgroundColor: '#1E90FF',
-    padding: 10,
+    backgroundColor: COLORS.primary,
+    padding: 5,
     alignItems: 'center',
   },
   headerText: {
-    color: '#fff',
-    fontSize: 20,
+    color: COLORS.white,
+    fontSize: FONTS.sizeLarge,
+    padding: 1,
     fontWeight: 'bold',
   },
   logoContainer: {
     alignItems: 'center',
     marginVertical: 20,
   },
-  logo: {
-    width: 100,
-    height: 100,
-    resizeMode: 'contain',
-  },
   welcomeText: {
-    fontSize: 18,
+    fontSize: FONTS.sizeMedium,
     textAlign: 'center',
     marginVertical: 10,
-    color: '#333',
+    color: COLORS.textPrimary,
   },
   headerContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 10,
+    paddingVertical: 2,
+    paddingHorizontal: 10,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+  },
+  mainlogo: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
+    marginBottom: 10,
+   },
+  messageContainer: {
+    marginTop: 10,
+    paddingHorizontal: 10,
+  },
+  scrollingMessage: {
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
+    width: Dimensions.get('window').width - 150,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#d9534f',
+    backgroundColor: COLORS.danger,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 5,
   },
   logoutButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
   },
 });
