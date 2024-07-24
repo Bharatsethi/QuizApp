@@ -1,3 +1,4 @@
+// /component/AdminActions/PlanList.jsx
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { fetchPlans, fetchQuizzesByPlanId, deletePlan } from '../../services/api';
