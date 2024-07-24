@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -6,6 +7,9 @@ const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const Answer = require('../models/Answer');
 const Plan = require('../models/Plan');
+const Chapter = require('../models/Chapter');
+const Lesson = require('../models/Lesson');
+const Topic = require('../models/Topic');
 const Quiz = require('../models/Quiz');
 const Translation = require('../models/Translation');
 const SECRET_KEY = process.env.SECRET_KEY;
@@ -21,6 +25,22 @@ router.get('/quiz/:quizId/answers', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch answers' });
   }
 });
+
+router.get('/health2', async (req, res) => {
+  try {
+    // Attempt to fetch one record from the User collection
+    const user = await User.findOne();
+    if (user) {
+      res.status(200).json({ message: 'Database connection is healthy2', user });
+    } else {
+      res.status(200).json({ message: 'Database connection is healthy, but no users found' });
+    }
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+    res.status(500).json({ message: 'Error connecting to the database', error: error.message });
+  }
+});
+
 
 // Submit quiz answers
 router.post('/quizzes/:quizId/submit', async (req, res) => {
@@ -42,6 +62,7 @@ router.post('/quizzes/:quizId/submit', async (req, res) => {
   }
 });
 
+// Fetch all users
 router.get('/users', async (req, res) => {
   try {
     const users = await User.find();
@@ -85,6 +106,7 @@ router.get('/user/profile/:id', async (req, res) => {
   }
 });
 
+// Register a new user
 router.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
   const existingUser = await User.findOne({ email });
@@ -102,23 +124,33 @@ router.post('/login', async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(400).json({ error: 'Invalid email or password' });
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log('User not found:', email);
+      return res.status(400).json({ error: 'Invalid email or password' });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log('Password does not match for user:', email);
+      return res.status(400).json({ error: 'Invalid email or password' });
+    }
+    const token = jwt.sign({ userId: user._id, role: user.role }, SECRET_KEY);
+    res.json({ token });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return res.status(400).json({ error: 'Invalid email or password' });
-  }
-  const token = jwt.sign({ userId: user._id, role: user.role }, SECRET_KEY);
-  res.json({ token });
 });
 
+
+
+// Forgot password
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) return res.status(400).send('User not found');
-  
+
   const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '1h' });
 
   const transporter = nodemailer.createTransport({
@@ -146,6 +178,7 @@ router.post('/forgot-password', async (req, res) => {
   });
 });
 
+// Reset password
 router.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
   try {
@@ -158,17 +191,7 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-// Fetch quizzes by plan ID
-router.get('/plans/:planId/quizzes', async (req, res) => {
-  const { planId } = req.params;
-  try {
-    const quizzes = await Quiz.find({ planId });
-    res.json(quizzes);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
+// Fetch all plans
 router.get('/plans', async (req, res) => {
   try {
     const plans = await Plan.find().populate('admin', 'username');
@@ -178,22 +201,69 @@ router.get('/plans', async (req, res) => {
   }
 });
 
-router.get('/plans/:id/chapters', async (req, res) => {
-  const { id } = req.params;
+// Request access to a plan (dummy endpoint for now)
+router.post('/plans/:planId/request-access', async (req, res) => {
+  const { planId } = req.params;
+  const { userId } = req.body; // Assuming the request contains the userId
   try {
-    const chapters = await Chapter.find({ planId: id });
+    // Logic to handle request access (e.g., saving request in a separate collection)
+    res.status(200).json({ message: 'Access request submitted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to submit access request' });
+  }
+});
+
+// Fetch chapters by plan ID
+router.get('/plans/:planId/chapters', async (req, res) => {
+  const { planId } = req.params;
+  try {
+    const chapters = await Chapter.find({ planId });
     res.json(chapters);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch chapters' });
   }
 });
 
-// Translation routes
-router.get('/translations', async (req, res) => {
+// Fetch lessons by chapter ID
+router.get('/chapters/:chapterId/lessons', async (req, res) => {
+  const { chapterId } = req.params;
+  try {
+    const lessons = await Lesson.find({ chapterId });
+    res.json(lessons);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch lessons' });
+  }
+});
+
+// Fetch topics by lesson ID
+router.get('/lessons/:lessonId/topics', async (req, res) => {
+  const { lessonId } = req.params;
+  try {
+    const topics = await Topic.find({ lessonId });
+    res.json(topics);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch topics' });
+  }
+});
+
+// Fetch quiz by topic ID
+router.get('/topics/:topicId/quizzes', async (req, res) => {
+  const { topicId } = req.params;
+  try {
+    const quizzes = await Quiz.find({ topicId });
+    res.json(quizzes);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch quizzes' });
+  }
+});
+
+// Fetch translations
+router.get('/admin/translations', async (req, res) => {
   try {
     const translations = await Translation.find();
     res.json(translations);
   } catch (error) {
+    console.error('Error fetching translations:', error);
     res.status(500).json({ error: 'Failed to fetch translations' });
   }
 });

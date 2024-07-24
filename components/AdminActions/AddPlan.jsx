@@ -3,25 +3,33 @@ import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { createPlan } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
 import styles from '../General/styles';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const AddPlan = ({ navigation }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
 
   const handleAddPlan = async () => {
+    if (!title || !description) {
+      Alert.alert(translations.error || 'Error', translations.fillAllFields || 'Please fill all fields');
+      return;
+    }
+
     try {
-      const response = await createPlan({ title, description });
-      if (response.status === 201) {
-        Alert.alert('Success', `${translations.plan} added successfully`);
-        navigation.navigate('ManagePlans');
-      } else {
-        Alert.alert('Error', `Failed to add ${translations.plan}`);
-      }
+      const planData = { title, description, adminId: user.userId };
+      await createPlan(planData);
+      Alert.alert(translations.success || 'Success', translations.planAdded || 'Plan added successfully', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
     } catch (error) {
-      console.error('Add Plan error:', error);
-      Alert.alert('Error', `Failed to add ${translations.plan}`);
+      Alert.alert(translations.error || 'Error', translations.somethingWentWrong || 'Something went wrong');
     }
   };
 
@@ -29,24 +37,30 @@ const AddPlan = ({ navigation }) => {
     <View style={styles.container}>
       <Header />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManagePlans')}>
-        <Text style={styles.backButtonText}>Back to Manage {translations.plans}</Text>
+        <Icon name="arrow-left" size={16} color="#fff" />
+        <Text style={styles.backButtonText}>{translations.backToManagePlans || `Back to Manage ${translations.plans}`}</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Add {translations.plan}</Text>
+      <Text style={styles.title}>{translations.addPlan || `Add ${translations.plan}`}</Text>
       <TextInput
         style={styles.input}
         value={title}
         onChangeText={setTitle}
-        placeholder={`Enter ${translations.plan.toLowerCase()} title`}
+        placeholder={translations.enterPlanTitle || `Enter ${translations.plan.toLowerCase()} title`}
       />
       <TextInput
         style={styles.input}
         value={description}
         onChangeText={setDescription}
-        placeholder={`Enter ${translations.plan.toLowerCase()} description`}
+        placeholder={translations.enterPlanDescription || `Enter ${translations.plan.toLowerCase()} description`}
       />
-      <TouchableOpacity style={styles.primaryButton} onPress={handleAddPlan}>
-        <Text style={styles.buttonText}>Add {translations.plan}</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleAddPlan}>
+          <Text style={styles.buttonText}>{translations.addPlan || `Add ${translations.plan}`}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

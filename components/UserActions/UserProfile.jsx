@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TextInput, Button, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
 import styles from '../General/styles';
 
-const UserProfile = ({ userId }) => {
+const UserProfile = ({ route }) => {
+  const { userId } = route.params;
   const { translations } = useContext(TranslationContext);
   const [user, setUser] = useState({});
   const [name, setName] = useState('');
@@ -13,37 +14,38 @@ const UserProfile = ({ userId }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const API_URL = 'http://137.154.208.211:3002';
-  
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`http://${API_URL}:3002/user/profile/${userId}`);
+        const response = await axios.get(`${API_URL}/user/profile/${userId}`);
         setUser(response.data);
         setName(response.data.name);
         setEmail(response.data.email);
       } catch (error) {
         console.error('Failed to fetch user profile:', error);
-        Alert.alert('Error', 'Failed to fetch user profile');
+        Alert.alert(translations.error, translations.failedToFetchUserProfile);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, [userId]);
+  }, [userId, translations.error, translations.failedToFetchUserProfile]);
 
   const handleUpdateProfile = async () => {
     if (!name.trim() || !email.trim()) {
-      Alert.alert('Error', 'Name and email are required');
+      Alert.alert(translations.error, translations.nameAndEmailRequired);
       return;
     }
 
     try {
-      await axios.put('http://${API_URL}:3002/user/profile', { userId, name, email, password });
-      Alert.alert('Success', 'Profile updated successfully');
+      await axios.put(`${API_URL}/user/profile`, { userId, name, email, password });
+      Alert.alert(translations.success, translations.profileUpdatedSuccessfully);
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong while updating the profile');
+      console.error('Error updating profile:', error);
+      Alert.alert(translations.error, translations.failedToUpdateProfile);
     }
   };
 
@@ -60,14 +62,14 @@ const UserProfile = ({ userId }) => {
               style={styles.input} 
               value={name} 
               onChangeText={setName} 
-              placeholder={`Enter your ${translations.username.toLowerCase()}`}
+              placeholder={translations.enterYourUsername}
             />
             <Text style={styles.label}>{translations.email}:</Text>
             <TextInput 
               style={styles.input} 
               value={email} 
               onChangeText={setEmail} 
-              placeholder={`Enter your ${translations.email.toLowerCase()}`}
+              placeholder={translations.enterYourEmail}
               keyboardType="email-address"
             />
             <Text style={styles.label}>{translations.password}:</Text>
@@ -75,10 +77,12 @@ const UserProfile = ({ userId }) => {
               style={styles.input} 
               value={password} 
               onChangeText={setPassword} 
-              placeholder={`Enter your ${translations.password.toLowerCase()}`}
+              placeholder={translations.enterYourPassword}
               secureTextEntry
             />
-            <Button title="Update Profile" onPress={handleUpdateProfile} />
+            <TouchableOpacity style={styles.primaryButton} onPress={handleUpdateProfile}>
+              <Text style={styles.buttonText}>{translations.updateProfile}</Text>
+            </TouchableOpacity>
           </>
         )}
       </View>

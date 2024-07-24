@@ -13,11 +13,16 @@ const ManageTopics = ({ route, navigation }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetchTopics(lesson._id);
-      setTopics(response.data);
+      try {
+        const response = await fetchTopics(lesson._id);
+        setTopics(response.data);
+      } catch (error) {
+        console.error('Failed to fetch topics:', error);
+        Alert.alert(translations.error || 'Error', translations.failedToFetchTopics || 'Failed to fetch topics. Please try again later.');
+      }
     };
     fetchData();
-  }, [lesson._id]);
+  }, [lesson._id, translations]);
 
   const handleAddTopic = () => {
     navigation.navigate('AddTopic', { lessonId: lesson._id });
@@ -31,14 +36,15 @@ const ManageTopics = ({ route, navigation }) => {
     try {
       await deleteTopic(topicId);
       setTopics(topics.filter(topic => topic._id !== topicId));
-      Alert.alert('Success', `${translations.topic} deleted successfully`);
+      Alert.alert(translations.success || 'Success', `${translations.topic} ${translations.deletedSuccessfully || 'deleted successfully'}`);
     } catch (error) {
-      Alert.alert('Error', `Failed to delete ${translations.topic}`);
+      console.error('Failed to delete topic:', error);
+      Alert.alert(translations.error || 'Error', `${translations.failedToDelete || 'Failed to delete'} ${translations.topic.toLowerCase()}`);
     }
   };
 
   const handleManageQuizzes = (topic) => {
-    navigation.navigate('ManageQuizzes', { topic });
+    navigation.navigate('ManageQuizzes', { contextId: topic._id, contextType: 'topic' });
   };
 
   return (
@@ -51,7 +57,7 @@ const ManageTopics = ({ route, navigation }) => {
         <Icon name="arrow-left" size={16} color="#fff" />
         <Text style={styles.backButtonText}>Back to {translations.lessons}</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Manage {translations.topics} for {lesson.title}</Text>
+      <Text style={styles.sectionTitle}>Manage {translations.topics} for {lesson.title}</Text>
       <TouchableOpacity style={styles.addButton} onPress={handleAddTopic}>
         <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
         <Text style={styles.addButtonText}>Add {translations.topic}</Text>
@@ -75,6 +81,7 @@ const ManageTopics = ({ route, navigation }) => {
             </View>
           </View>
         )}
+        contentContainerStyle={styles.topicsList}
       />
     </View>
   );

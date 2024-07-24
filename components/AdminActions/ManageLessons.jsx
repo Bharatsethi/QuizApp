@@ -13,11 +13,16 @@ const ManageLessons = ({ route, navigation }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetchLessons(chapter._id);
-      setLessons(response.data);
+      try {
+        const response = await fetchLessons(chapter._id);
+        setLessons(response.data);
+      } catch (error) {
+        console.error('Failed to fetch lessons:', error);
+        Alert.alert(translations.error || 'Error', translations.failedToFetchLessons || 'Failed to fetch lessons. Please try again later.');
+      }
     };
     fetchData();
-  }, [chapter._id]);
+  }, [chapter._id, translations]);
 
   const handleAddLesson = () => {
     navigation.navigate('AddLesson', { chapterId: chapter._id });
@@ -31,9 +36,10 @@ const ManageLessons = ({ route, navigation }) => {
     try {
       await deleteLesson(lessonId);
       setLessons(lessons.filter(lesson => lesson._id !== lessonId));
-      Alert.alert('Success', `${translations.lesson} deleted successfully`);
+      Alert.alert(translations.success || 'Success', `${translations.lesson} ${translations.deletedSuccessfully || 'deleted successfully'}`);
     } catch (error) {
-      Alert.alert('Error', `Failed to delete ${translations.lesson.toLowerCase()}`);
+      console.error('Failed to delete lesson:', error);
+      Alert.alert(translations.error || 'Error', `${translations.failedToDelete || 'Failed to delete'} ${translations.lesson.toLowerCase()}`);
     }
   };
 
@@ -41,17 +47,21 @@ const ManageLessons = ({ route, navigation }) => {
     navigation.navigate('ManageTopics', { lesson });
   };
 
+  const handleManageQuizzes = (lesson) => {
+    navigation.navigate('ManageQuizzes', { contextId: lesson._id, contextType: 'lesson' });
+  };
+
   return (
     <View style={styles.container}>
       <Header />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>Back to {translations.chapter}s</Text>
+        <Text style={styles.backButtonText}>{translations.backToChapters || 'Back to Chapters'}</Text>
       </TouchableOpacity>
-      <Text style={styles.sectionTitle}>Manage {translations.lesson}s for {chapter.title}</Text>
+      <Text style={styles.sectionTitle}>{translations.manage} {translations.lessons} {translations.for} {chapter.title}</Text>
       <TouchableOpacity style={styles.addButton} onPress={handleAddLesson}>
         <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>Add {translations.lesson}</Text>
+        <Text style={styles.addButtonText}>{translations.add} {translations.lesson}</Text>
       </TouchableOpacity>
       <FlatList
         data={lessons}
@@ -68,6 +78,9 @@ const ManageLessons = ({ route, navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageTopics(item)}>
                 <Icon name="book" size={20} color="#000" style={styles.icon} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
+                <Icon name="question-circle" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
             </View>
           </View>

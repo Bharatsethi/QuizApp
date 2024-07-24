@@ -13,10 +13,10 @@ const SubmitAnswer = ({ route, navigation }) => {
     const userId = 'currentUserId'; // replace with actual current user ID
     try {
       await submitAnswer({ userId, quizId, questionId, answer });
-      Alert.alert('Success', 'Answer submitted');
+      Alert.alert(translations.success, translations.answerSubmitted);
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit answer');
+      Alert.alert(translations.error, translations.failedToSubmitAnswer);
     }
   };
 
@@ -29,8 +29,11 @@ const SubmitAnswer = ({ route, navigation }) => {
         onChangeText={setAnswer}
         placeholder={translations.enterYourAnswer}
       />
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+      <TouchableOpacity style={styles.primaryButton} onPress={handleSubmit}>
         <Text style={styles.buttonText}>{translations.submit}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.buttonText}>{translations.cancel}</Text>
       </TouchableOpacity>
     </View>
   );

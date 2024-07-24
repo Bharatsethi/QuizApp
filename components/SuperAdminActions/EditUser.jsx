@@ -1,9 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Alert, TouchableOpacity } from 'react-native';
-import axios from 'axios';
 import { TranslationContext } from '../../context/TranslationContext';
 import Header from '../General/Header';
 import styles from '../General/styles';
+import { updateUser } from '../../services/api'; // Import the function from api.js
 
 const EditUser = ({ route, navigation }) => {
   const { user } = route.params;
@@ -11,11 +11,10 @@ const EditUser = ({ route, navigation }) => {
   const [email, setEmail] = useState(user.email);
   const [password, setPassword] = useState('');
   const { translations } = useContext(TranslationContext);
-  const API_URL = 'http://192.168.0.75:3002';
 
   const handleSave = async () => {
     if (!username || !email) {
-      Alert.alert(translations.error, translations.fillAllFields || 'Please fill all fields');
+      Alert.alert(translations.error || 'Error', translations.fillAllFields || 'Please fill all fields');
       return;
     }
 
@@ -24,13 +23,13 @@ const EditUser = ({ route, navigation }) => {
       if (password) {
         updatedUser.password = password;
       }
-      await axios.put(`${API_URL}/superuser/users/${user._id}`, updatedUser);
-      Alert.alert(translations.success, translations.userUpdatedSuccessfully);
+      await updateUser(user._id, updatedUser);
+      Alert.alert(translations.success || 'Success', translations.userUpdatedSuccessfully || 'User updated successfully');
       navigation.goBack();
     } catch (error) {
       console.error('Error updating user:', error.response?.data || error.message);
-      const errorMessage = error.response?.data?.message || translations.somethingWentWrong;
-      Alert.alert(translations.error, errorMessage);
+      const errorMessage = error.response?.data?.message || translations.somethingWentWrong || 'Something went wrong';
+      Alert.alert(translations.error || 'Error', errorMessage);
     }
   };
 
@@ -38,35 +37,35 @@ const EditUser = ({ route, navigation }) => {
     <View style={styles.container}>
       <Header />
       <View style={styles.form}>
-        <Text style={styles.label}>{translations.username}:</Text>
+        <Text style={styles.label}>{translations.username || 'Username'}:</Text>
         <TextInput 
           style={styles.input} 
           value={username} 
           onChangeText={setUsername} 
-          placeholder={translations.enterUsername}
+          placeholder={translations.enterUsername || 'Enter username'}
         />
-        <Text style={styles.label}>{translations.email}:</Text>
+        <Text style={styles.label}>{translations.email || 'Email'}:</Text>
         <TextInput 
           style={styles.input} 
           value={email} 
           onChangeText={setEmail} 
-          placeholder={translations.enterEmail}
+          placeholder={translations.enterEmail || 'Enter email'}
           keyboardType="email-address"
         />
-        <Text style={styles.label}>{`${translations.password} (${translations.optional}):`}</Text>
+        <Text style={styles.label}>{`${translations.password || 'Password'} (${translations.optional || 'Optional'}):`}</Text>
         <TextInput 
           style={styles.input} 
           value={password} 
           onChangeText={setPassword} 
-          placeholder={translations.enterPassword}
+          placeholder={translations.enterPassword || 'Enter password'}
           secureTextEntry
         />
-        <View style={styles.buttonContainer}>
+        <View style={styles.superbuttonContainer}>
           <TouchableOpacity style={styles.primaryButton} onPress={handleSave}>
-            <Text style={styles.buttonText}>{translations.save}</Text>
+            <Text style={styles.buttonText}>{translations.save || 'Save'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton}  onPress={() => navigation.goBack()}>
-            <Text style={styles.buttonText}>{translations.cancel}</Text>
+          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
           </TouchableOpacity>
         </View>
       </View>

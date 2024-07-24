@@ -1,5 +1,6 @@
+// components/SuperAdminActions/UserList.jsx
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, Dimensions, TextInput, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Dimensions, TextInput } from 'react-native';
 import { fetchUsers, deleteUser } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -13,8 +14,8 @@ const UserList = ({ navigation }) => {
   const [orientation, setOrientation] = useState('PORTRAIT');
   const { translations } = useContext(TranslationContext);
 
-  const t = { 
-    ...translations, 
+  const t = {
+    ...translations,
     searchPlaceholder: translations.searchPlaceholder || 'Search users...',
     error: translations.error || 'Error',
     failedToFetchUsers: translations.failedToFetchUsers || 'Failed to fetch users',
@@ -25,7 +26,7 @@ const UserList = ({ navigation }) => {
     role: translations.role || 'Role',
     actions: translations.actions || 'Actions',
     userDeletedSuccessfully: translations.userDeletedSuccessfully || 'User deleted successfully',
-    failedToDeleteUser: translations.failedToDeleteUser || 'Failed to delete user', 
+    failedToDeleteUser: translations.failedToDeleteUser || 'Failed to delete user',
   };
 
   const fetchData = async () => {
@@ -75,8 +76,9 @@ const UserList = ({ navigation }) => {
   const handleDeleteUser = async (userId) => {
     try {
       await deleteUser(userId);
-      setUsers(users.filter((user) => user._id !== userId));
-      setFilteredUsers(users.filter((user) => user._id !== userId));
+      const updatedUsers = users.filter((user) => user._id !== userId);
+      setUsers(updatedUsers);
+      setFilteredUsers(updatedUsers);
       Alert.alert(t.success, t.userDeletedSuccessfully);
     } catch (error) {
       Alert.alert(t.error, t.failedToDeleteUser);
@@ -85,8 +87,8 @@ const UserList = ({ navigation }) => {
 
   const handleSearch = (text) => {
     setSearchText(text);
-    const filtered = users.filter(user => 
-      user.username.toLowerCase().includes(text.toLowerCase()) || 
+    const filtered = users.filter(user =>
+      user.username.toLowerCase().includes(text.toLowerCase()) ||
       user.email.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredUsers(filtered);
@@ -95,15 +97,18 @@ const UserList = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <View style={localStyles.headerContainer}>
-        <TouchableOpacity style={localStyles.addButton} onPress={handleAddAdmin}>
+      
+      <View style={styles.headerContainer}>
+      
+        <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
           <Icon name="plus" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.addButtonText}>{t.addAdmin}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={localStyles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Icon name="sign-out" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.logoutButtonText}>{t.logout}</Text>
         </TouchableOpacity>
+        
       </View>
       <TextInput
         style={styles.searchInput}
@@ -144,42 +149,5 @@ const UserList = ({ navigation }) => {
     </View>
   );
 };
-
-const localStyles = StyleSheet.create({
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  addButton: {
-    backgroundColor: '#28a745',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  logoutButton: {
-    backgroundColor: '#dc3545',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
 
 export default UserList;

@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { fetchPlans, deletePlan } from '../../services/api';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { fetchPlans, deletePlan, addUserToPlan } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
@@ -10,13 +11,21 @@ const ManagePlans = ({ navigation }) => {
   const [plans, setPlans] = useState([]);
   const { translations } = useContext(TranslationContext);
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
+    try {
       const response = await fetchPlans();
       setPlans(response.data);
-    };
-    fetchData();
-  }, []);
+    } catch (error) {
+      console.error('Failed to fetch plans:', error);
+      Alert.alert(translations.error || 'Error', translations.failedToFetchPlans || 'Failed to fetch plans. Please try again later.');
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   const handleAddPlan = () => {
     navigation.navigate('AddPlan');
@@ -30,14 +39,24 @@ const ManagePlans = ({ navigation }) => {
     try {
       await deletePlan(planId);
       setPlans(plans.filter(plan => plan._id !== planId));
-      Alert.alert('Success', `${translations.plan} deleted successfully`);
+      Alert.alert(translations.success || 'Success', `${translations.plan} ${translations.deletedSuccessfully || 'deleted successfully'}`);
     } catch (error) {
-      Alert.alert('Error', `Failed to delete ${translations.plan.toLowerCase()}`);
+      console.error('Delete plan error:', error);
+      Alert.alert(translations.error || 'Error', `${translations.failedToDelete || 'Failed to delete'} ${translations.plan.toLowerCase()}`);
     }
   };
-  
+
   const handleManageChapters = (plan) => {
     navigation.navigate('ManageChapters', { plan });
+  };
+
+  const handleViewPlanAsUser = async (plan) => {
+    try {
+      await addUserToPlan(plan._id, 'adminId'); // Assuming 'adminId' is the admin's ID
+      navigation.navigate('PlanDetails', { planId: plan._id });
+    } catch (error) {
+      Alert.alert(translations.error || 'Error', translations.failedToAddUserToPlan || 'Failed to add user to plan.');
+    }
   };
 
   return (
@@ -45,12 +64,12 @@ const ManagePlans = ({ navigation }) => {
       <Header />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('AdminDashboard')}>
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>Back to Dashboard</Text>
+        <Text style={styles.backButtonText}>{translations.backToDashboard || 'Back to Dashboard'}</Text>
       </TouchableOpacity>
-      <Text style={styles.sectionTitle}>Manage {translations.plans}</Text>
+      <Text style={styles.sectionTitle}>{translations.manage} {translations.plans}</Text>
       <TouchableOpacity style={styles.addButton} onPress={handleAddPlan}>
         <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>Add {translations.plan}</Text>
+        <Text style={styles.addButtonText}>{translations.add} {translations.plan}</Text>
       </TouchableOpacity>
       <FlatList
         data={plans}
@@ -67,6 +86,9 @@ const ManagePlans = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageChapters(item)}>
                 <Icon name="book" size={20} color="#000" style={styles.icon} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleViewPlanAsUser(item)}>
+                <Icon name="eye" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
             </View>
           </View>

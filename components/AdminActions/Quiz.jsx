@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, Button, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { fetchQuestions, submitAnswer } from '../../services/api';
 import Header from '../General/Header';
 import styles from '../General/styles';
+import { TranslationContext } from '../../context/TranslationContext';
 
 const Quiz = () => {
   const [questions, setQuestions] = useState([]);
@@ -10,6 +11,7 @@ const Quiz = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -17,18 +19,18 @@ const Quiz = () => {
         const response = await fetchQuestions();
         setQuestions(response.data);
       } catch (error) {
-        Alert.alert('Error', 'Failed to load questions');
+        Alert.alert(translations.error || 'Error', translations.failedToLoadQuestions || 'Failed to load questions');
       } finally {
         setLoading(false);
       }
     };
 
     loadQuestions();
-  }, []);
+  }, [translations]);
 
   const handleAnswerSubmit = async () => {
     if (selectedAnswer === null) {
-      Alert.alert('Please select an answer before submitting.');
+      Alert.alert(translations.error || 'Error', translations.selectAnswer || 'Please select an answer before submitting.');
       return;
     }
 
@@ -39,14 +41,14 @@ const Quiz = () => {
         setScore(score + 1);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit answer');
+      Alert.alert(translations.error || 'Error', translations.failedToSubmitAnswer || 'Failed to submit answer');
     }
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(null);
     } else {
-      Alert.alert('Quiz Completed', `Your score is: ${score}`);
+      Alert.alert(translations.quizCompleted || 'Quiz Completed', `${translations.yourScoreIs || 'Your score is:'} ${score}`);
     }
   };
 
@@ -55,7 +57,7 @@ const Quiz = () => {
       <View style={styles.container}>
         <Header />
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading...</Text>
+        <Text>{translations.loading || 'Loading...'}</Text>
       </View>
     );
   }
@@ -64,7 +66,7 @@ const Quiz = () => {
     return (
       <View style={styles.container}>
         <Header />
-        <Text>No questions available.</Text>
+        <Text>{translations.noQuestionsAvailable || 'No questions available.'}</Text>
       </View>
     );
   }
@@ -74,14 +76,16 @@ const Quiz = () => {
       <Header />
       <Text style={styles.title}>{questions[currentQuestion].questionText}</Text>
       {questions[currentQuestion].options.map((option, index) => (
-        <Button
+        <TouchableOpacity
           key={index}
-          title={option}
+          style={selectedAnswer === option ? styles.selectedOption : styles.option}
           onPress={() => setSelectedAnswer(option)}
-        />
+        >
+          <Text style={styles.optionText}>{option}</Text>
+        </TouchableOpacity>
       ))}
-      <TouchableOpacity style={styles.button} onPress={handleAnswerSubmit}>
-        <Text style={styles.buttonText}>Submit Answer</Text>
+      <TouchableOpacity style={styles.primaryButton} onPress={handleAnswerSubmit}>
+        <Text style={styles.buttonText}>{translations.submitAnswer || 'Submit Answer'}</Text>
       </TouchableOpacity>
     </View>
   );

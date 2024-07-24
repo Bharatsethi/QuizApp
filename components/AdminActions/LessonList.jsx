@@ -1,6 +1,6 @@
 // LessonList.jsx
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { fetchLessons } from '../../services/api';
 import Header from '../General/Header';
 import styles from '../General/styles';
@@ -13,19 +13,24 @@ const LessonList = ({ route, navigation }) => {
 
   useEffect(() => {
     const getLessons = async () => {
-      const response = await fetchLessons(chapterId);
-      setLessons(response.data);
+      try {
+        const response = await fetchLessons(chapterId);
+        setLessons(response.data);
+      } catch (error) {
+        console.error('Failed to fetch lessons:', error);
+        Alert.alert(translations.error || 'Error', translations.failedToFetchLessons || `Failed to fetch ${translations.lesson.toLowerCase()}s`);
+      }
     };
 
     getLessons();
-  }, [chapterId]);
+  }, [chapterId, translations]);
 
   const renderLessonItem = ({ item }) => (
-    <View style={styles.planItem}>
-      <Text style={styles.planText}>{item.title}</Text>
-      <Text style={styles.planText}>{item.content}</Text>
+    <View style={styles.lessonItem}>
+      <Text style={styles.lessonTitle}>{item.title}</Text>
+      <Text style={styles.lessonText}>{item.content}</Text>
       <TouchableOpacity
-        style={styles.button}
+        style={styles.primaryButton}
         onPress={() => navigation.navigate('TopicList', { lessonId: item._id })}
       >
         <Text style={styles.buttonText}>View {translations.topic}s</Text>
@@ -37,16 +42,13 @@ const LessonList = ({ route, navigation }) => {
     <View style={styles.container}>
       <Header />
       <Text style={styles.sectionTitle}>{translations.lesson}s</Text>
-      {lessons.length === 0 ? (
-        <Text style={styles.noPlansText}>No {translations.lesson.toLowerCase()}s found.</Text>
-      ) : (
-        <FlatList
-          data={lessons}
-          keyExtractor={(item) => item._id}
-          renderItem={renderLessonItem}
-          contentContainerStyle={styles.plansList}
-        />
-      )}
+      <FlatList
+        data={lessons}
+        keyExtractor={(item) => item._id}
+        renderItem={renderLessonItem}
+        contentContainerStyle={styles.contentContainer}
+        ListEmptyComponent={<Text style={styles.emptyListText}>No {translations.lesson.toLowerCase()}s found.</Text>}
+      />
     </View>
   );
 };

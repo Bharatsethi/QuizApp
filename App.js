@@ -2,10 +2,12 @@ import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MessageProvider } from './context/MessageContext';
+import { UserProvider, UserContext } from './context/UserContext';
 import { TranslationProvider } from './context/TranslationContext';
 import Login from './components/UserActions/Login';
 import Register from './components/UserActions/Register';
 import ForgotPassword from './components/UserActions/ForgotPassword';
+import { Text } from 'react-native'; // Import Text for Suspense fallback
 
 const Stack = createStackNavigator();
 
@@ -24,6 +26,7 @@ const AdminScreens = [
   { name: 'ManageChapters', component: React.lazy(() => import('./components/AdminActions/ManageChapters')) },
   { name: 'ManageLessons', component: React.lazy(() => import('./components/AdminActions/ManageLessons')) },
   { name: 'AddChapter', component: React.lazy(() => import('./components/AdminActions/AddChapter')) },
+  { name: 'AddExistingChapter', component: React.lazy(() => import('./components/AdminActions/AddExistingChapter')) },
   { name: 'EditChapter', component: React.lazy(() => import('./components/AdminActions/EditChapter')) },
   { name: 'AddLesson', component: React.lazy(() => import('./components/AdminActions/AddLesson')) },
   { name: 'EditLesson', component: React.lazy(() => import('./components/AdminActions/EditLesson')) },
@@ -34,6 +37,9 @@ const AdminScreens = [
   { name: 'ViewAnswers', component: React.lazy(() => import('./components/AdminActions/ViewAnswers')) },
   { name: 'AddPlan', component: React.lazy(() => import('./components/AdminActions/AddPlan')) },
   { name: 'ManageMessages', component: React.lazy(() => import('./components/AdminActions/ManageMessages')) },
+  { name: 'EditPlan', component: React.lazy(() => import('./components/AdminActions/EditPlan')) },
+  { name: 'EditMessage', component: React.lazy(() => import('./components/AdminActions/EditMessage')) },
+  { name: 'ManageQuestions', component: React.lazy(() => import('./components/AdminActions/ManageQuestions')) }, // Ensure the file exists
 ];
 
 const SuperAdminScreens = [
@@ -53,26 +59,43 @@ const UserScreens = [
   { name: 'ViewQuiz', component: React.lazy(() => import('./components/UserActions/ViewQuiz')) },
 ];
 
+const MainApp = () => {
+  const { user } = React.useContext(UserContext);
+  console.log('User in App:', user); // Debug log
+  const renderScreens = (screens) =>
+    screens.map((screen) => <Stack.Screen key={screen.name} name={screen.name} component={screen.component} />);
+
+  const getScreensByRole = () => {
+    if (user?.role === 'superuser') { // Changed from 'superadmin' to 'superuser'
+      return renderScreens(SuperAdminScreens);
+    } else if (user?.role === 'admin') {
+      return renderScreens(AdminScreens);
+    } else {
+      return renderScreens(UserScreens);
+    }
+  };
+
+  return (
+    <NavigationContainer>
+      <React.Suspense fallback={<Text>Loading...</Text>}>
+        <Stack.Navigator initialRouteName="Login" screenOptions={screenOptions}>
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+          {getScreensByRole()}
+        </Stack.Navigator>
+      </React.Suspense>
+    </NavigationContainer>
+  );
+};
+
 const App = () => {
   return (
     <TranslationProvider>
       <MessageProvider>
-        <NavigationContainer>
-          <Stack.Navigator initialRouteName="Login" screenOptions={screenOptions}>
-            <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen name="Register" component={Register} />
-            <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-            {AdminScreens.map((screen) => (
-              <Stack.Screen key={screen.name} name={screen.name} component={screen.component} />
-            ))}
-            {SuperAdminScreens.map((screen) => (
-              <Stack.Screen key={screen.name} name={screen.name} component={screen.component} />
-            ))}
-            {UserScreens.map((screen) => (
-              <Stack.Screen key={screen.name} name={screen.name} component={screen.component} />
-            ))}
-          </Stack.Navigator>
-        </NavigationContainer>
+        <UserProvider>
+          <MainApp />
+        </UserProvider>
       </MessageProvider>
     </TranslationProvider>
   );

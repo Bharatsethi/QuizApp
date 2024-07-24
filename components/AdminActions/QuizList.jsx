@@ -17,7 +17,7 @@ const QuizList = ({ navigation, route }) => {
         const response = await fetchQuizzesByPlanId(planId);
         setQuizzes(response.data);
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch quizzes');
+        Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
       }
     };
 
@@ -37,9 +37,9 @@ const QuizList = ({ navigation, route }) => {
         renderItem={({ item }) => (
           <View style={styles.quizItem}>
             <Text style={styles.quizText}>{item.title}</Text>
-            <TouchableOpacity onPress={() => handleViewQuiz(item._id)}>
+            <TouchableOpacity style={styles.viewButton} onPress={() => handleViewQuiz(item._id)}>
               <Icon name="eye" size={20} color="#000" style={styles.icon} />
-              <Text style={styles.viewText}>{translations.viewQuiz}</Text>
+              <Text style={styles.viewButtonText}>{translations.viewQuiz || 'View Quiz'}</Text>
             </TouchableOpacity>
           </View>
         )}

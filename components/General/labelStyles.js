@@ -1,4 +1,3 @@
-// General/labelStyles.js
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS } from './colors';
 
@@ -43,6 +42,27 @@ const labelStyles = StyleSheet.create({
     marginBottom: 10,
   },
   contentText: {
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
+  },
+  noPlansText: {
+    textAlign: 'center',
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.textPrimary,
+  },
+  answerItem: {
+    backgroundColor: COLORS.white,
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 5,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+    flexDirection: 'column',
+  },
+  answerText: {
     fontSize: FONTS.sizeMedium,
     color: COLORS.textPrimary,
   },

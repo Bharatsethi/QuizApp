@@ -1,16 +1,15 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, TextInput, Alert, TouchableOpacity, StyleSheet } from 'react-native';
-import axios from 'axios';
+import { View, Text, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { TranslationContext } from '../../context/TranslationContext';
 import Header from '../General/Header';
 import styles from '../General/styles';
+import { createAdmin } from '../../services/api'; // Import the function from api.js
 
 const AddAdmin = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { translations } = useContext(TranslationContext);
-  const API_URL = 'http://192.168.0.75:3002';
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -27,8 +26,7 @@ const AddAdmin = ({ navigation }) => {
     }
 
     try {
-      Alert.alert(`${API_URL}/superuser/admin`)
-      await axios.post(`${API_URL}/superuser/admin`, { username, email, password });
+      await createAdmin({ username, email, password });
       Alert.alert(translations.success, `${translations.admin} created successfully`, [
         {
           text: 'OK',
@@ -47,63 +45,41 @@ const AddAdmin = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <View style={localStyles.form}>
-        <Text style={styles.label}>{translations.username}:</Text>
+      <View style={styles.card}>
+        <Text style={styles.label}>{translations.username || 'Username'}:</Text>
         <TextInput
           style={styles.input}
           value={username}
           onChangeText={setUsername}
-          placeholder={`Enter ${translations.username.toLowerCase()}`}
+          placeholder={`Enter ${translations.username?.toLowerCase() || 'username'}`}
         />
-        <Text style={styles.label}>{translations.email}:</Text>
+        <Text style={styles.label}>{translations.email || 'Email'}:</Text>
         <TextInput
           style={styles.input}
           value={email}
           onChangeText={setEmail}
-          placeholder={`Enter ${translations.email.toLowerCase()}`}
+          placeholder={`Enter ${translations.email?.toLowerCase() || 'email'}`}
           keyboardType="email-address"
         />
-        <Text style={styles.label}>{translations.password}:</Text>
+        <Text style={styles.label}>{translations.password || 'Password'}:</Text>
         <TextInput
           style={styles.input}
           value={password}
           onChangeText={setPassword}
-          placeholder={`Enter ${translations.password.toLowerCase()}`}
+          placeholder={`Enter ${translations.password?.toLowerCase() || 'password'}`}
           secureTextEntry
         />
-        <View style={styles.buttonContainer}>
+        <View style={styles.superbuttonContainer}>
           <TouchableOpacity style={styles.primaryButton} onPress={handleCreateAdmin}>
-            <Text style={styles.buttonText}>{translations.create} {translations.admin}</Text>
+            <Text style={styles.buttonText}>{translations.create || 'Create'} {translations.admin || 'Admin'}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.buttonText}>{translations.cancel}</Text>
+            <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
           </TouchableOpacity>
         </View>
       </View>
     </View>
   );
 };
-
-const localStyles = StyleSheet.create({
-  form: {
-    marginVertical: 20,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 2,
-  },
-  primaryButton: {
-    ...styles.primaryButton,
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  cancelButton: {
-    ...styles.cancelButton,
-    flex: 1,
-    marginHorizontal: 3,
-    backgroundColor: '#dc3545', // Ensure the cancel button is styled correctly
-  },
-});
 
 export default AddAdmin;

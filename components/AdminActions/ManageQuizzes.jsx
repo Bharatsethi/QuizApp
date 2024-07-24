@@ -1,26 +1,33 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { fetchQuizzes, deleteQuiz } from '../../services/api';
+import { View, Text, FlatList, TouchableOpacity, Alert, Modal, Button } from 'react-native';
+import { fetchQuizzes, deleteQuiz, linkQuizToContext } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import styles from '../General/styles';
 
 const ManageQuizzes = ({ route, navigation }) => {
-  const { topic } = route.params;
+  const { context } = route.params;
   const [quizzes, setQuizzes] = useState([]);
+  const [availableQuizzes, setAvailableQuizzes] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
   const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetchQuizzes(topic._id);
-      setQuizzes(response.data);
+      try {
+        const response = await fetchQuizzes(context._id);
+        setQuizzes(response.data);
+      } catch (error) {
+        console.error('Failed to fetch quizzes:', error);
+        Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes. Please try again later.');
+      }
     };
     fetchData();
-  }, [topic._id]);
+  }, [context._id, translations]);
 
   const handleAddQuiz = () => {
-    navigation.navigate('AddQuiz', { topicId: topic._id });
+    navigation.navigate('AddQuiz', { contextId: context._id });
   };
 
   const handleEditQuiz = (quiz) => {
@@ -31,26 +38,82 @@ const ManageQuizzes = ({ route, navigation }) => {
     try {
       await deleteQuiz(quizId);
       setQuizzes(quizzes.filter(quiz => quiz._id !== quizId));
-      Alert.alert('Success', `${translations.quiz} deleted successfully`);
+      Alert.alert(translations.success || 'Success', `${translations.quiz} ${translations.deletedSuccessfully || 'deleted successfully'}`);
     } catch (error) {
-      Alert.alert('Error', `Failed to delete ${translations.quiz}`);
+      console.error('Failed to delete quiz:', error);
+      Alert.alert(translations.error || 'Error', `${translations.failedToDelete || 'Failed to delete'} ${translations.quiz.toLowerCase()}`);
     }
   };
+
+  const handleManageQuestions = (quiz) => {
+    navigation.navigate('ManageQuestions', { quiz });
+  };
+
+  const handleLinkQuiz = async () => {
+    try {
+      const response = await fetchQuizzes(); // Fetch all quizzes to allow selection
+      const availableQuizzes = response.data.filter((quiz) => !quizzes.some((q) => q._id === quiz._id));
+      setAvailableQuizzes(availableQuizzes);
+      setModalVisible(true);
+    } catch (error) {
+      Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
+    }
+  };
+
+  const linkSelectedQuiz = async (quizId) => {
+    try {
+      await linkQuizToContext(context._id, quizId);
+      setQuizzes([...quizzes, availableQuizzes.find((q) => q._id === quizId)]);
+      Alert.alert(translations.success || 'Success', translations.quizLinkedSuccessfully || 'Quiz linked successfully');
+      setModalVisible(false);
+    } catch (error) {
+      Alert.alert(translations.error || 'Error', translations.failedToLinkQuiz || 'Failed to link quiz');
+    }
+  };
+
+  const renderAvailableQuizzes = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>{translations.selectQuiz || 'Select Quiz'}</Text>
+          <FlatList
+            data={availableQuizzes}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => linkSelectedQuiz(item._id)} style={styles.modalItem}>
+                <Text>{item.title}</Text>
+              </TouchableOpacity>
+            )}
+          />
+          <Button title={translations.cancel || 'Cancel'} onPress={() => setModalVisible(false)} />
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <View style={styles.container}>
       <Header />
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate('ManageTopics', { lesson: topic.lesson })}
+        onPress={() => navigation.goBack()}
       >
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>Back to {translations.topics}</Text>
+        <Text style={styles.backButtonText}>Back</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Manage {translations.quizzes} for {topic.title}</Text>
+      <Text style={styles.sectionTitle}>Manage {translations.quizzes} for {context.title}</Text>
       <TouchableOpacity style={styles.addButton} onPress={handleAddQuiz}>
         <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
         <Text style={styles.addButtonText}>Add {translations.quiz}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.addButton} onPress={handleLinkQuiz}>
+        <Icon name="link" size={16} color="#fff" style={styles.addButtonIcon} />
+        <Text style={styles.addButtonText}>{translations.link} {translations.quiz}</Text>
       </TouchableOpacity>
       <FlatList
         data={quizzes}
@@ -65,10 +128,15 @@ const ManageQuizzes = ({ route, navigation }) => {
               <TouchableOpacity onPress={() => handleDeleteQuiz(item._id)}>
                 <Icon name="trash" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleManageQuestions(item)}>
+                <Icon name="question-circle" size={20} color="#000" style={styles.icon} />
+              </TouchableOpacity>
             </View>
           </View>
         )}
+        contentContainerStyle={styles.plansList}
       />
+      {renderAvailableQuizzes()}
     </View>
   );
 };

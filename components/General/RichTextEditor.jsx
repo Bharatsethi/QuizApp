@@ -1,4 +1,3 @@
-// General/RichTextEditor.jsx
 import React, { forwardRef } from 'react';
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import { StyleSheet, View } from 'react-native';
@@ -11,17 +10,6 @@ const RichTextEditor = forwardRef((props, ref) => {
 
   return (
     <View style={styles.container}>
-      <RichEditor
-        ref={ref}
-        style={styles.richEditor}
-        initialContentHTML={content}
-        onChange={onContentChange}
-        editorInitializedCallback={() => {
-          console.log('Editor initialized');
-        }}
-        placeholder="Start writing here..."
-        accessibilityLabel="Rich Text Editor"
-      />
       <RichToolbar
         editor={ref}
         actions={[
@@ -37,6 +25,17 @@ const RichTextEditor = forwardRef((props, ref) => {
         disabledIconTint="#8b8b8b"
         style={styles.toolbar}
         accessibilityLabel="Rich Text Editor Toolbar"
+      />
+      <RichEditor
+        ref={ref}
+        style={styles.richEditor}
+        initialContentHTML={content}
+        onChange={onContentChange}
+        editorInitializedCallback={() => {
+          console.log('Editor initialized');
+        }}
+        placeholder="Start writing here..."
+        accessibilityLabel="Rich Text Editor"
       />
     </View>
   );
@@ -57,11 +56,12 @@ const styles = StyleSheet.create({
   },
   richEditor: {
     ...inputStyles.richTextEditor,
+    minHeight: 150,  // You can adjust the height as needed
   },
   toolbar: {
     backgroundColor: '#f5f5f5',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
 });
 

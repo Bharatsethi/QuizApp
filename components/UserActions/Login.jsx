@@ -5,42 +5,44 @@ import Header from '../General/Header';
 import jwt_decode from 'jwt-decode';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
 import styles from '../General/styles';
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { translations } = useContext(TranslationContext);
+  const { setUser } = useContext(UserContext);
 
-  // Function to get translation or default text
   const getTranslation = (key, defaultText) => translations[key] || defaultText;
 
   const handleLogin = async () => {
-    console.log('Attempting to log in...');
     try {
       const response = await login({ email, password });
-      console.log('Login response:', response);
       const { token } = response.data;
 
       let decoded;
       try {
         decoded = jwt_decode(token);
       } catch (error) {
-        console.error('Error decoding token:', error);
         Alert.alert(getTranslation('error', 'Error'), getTranslation('invalidToken', 'Invalid token'));
         return;
       }
 
-      //Alert.alert(getTranslation('success', 'Success'), getTranslation('loggedInSuccessfully', 'Logged in successfully'));
+      // Save user details and token to UserContext
+      await setUser({ token, ...decoded });
+      console.log('Logged in user:', { token, ...decoded });
+
+      // Navigate based on user role
       if (decoded.role === 'superuser') {
+        console.log(decoded.role);
         navigation.navigate('UserList');
       } else if (decoded.role === 'admin') {
         navigation.navigate('AdminDashboard');
       } else {
-        navigation.navigate('PlanList');
+        navigation.navigate('UserPlanList'); // Ensure this is correct
       }
     } catch (error) {
-      console.error('Login error:', error);
       if (error.response && error.response.status === 400) {
         Alert.alert(getTranslation('error', 'Error'), error.response.data.error);
       } else {
@@ -55,7 +57,7 @@ const Login = ({ navigation }) => {
       <View style={styles.logoContainer}>
         <Image 
           source={{ uri: 'https://i0.wp.com/poojabharat.com/wp-content/uploads/2020/06/logo.jpeg?fit=500%2C310&ssl=1' }}
-          style={styles.mainlogo}
+          style={styles.mainLogo}
         />
         <Text style={styles.welcomeText}>{getTranslation('welcomeMessage', 'Welcome to the world of transformation')}</Text>
       </View>

@@ -1,4 +1,3 @@
-// TranslationContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 import { fetchTranslations } from '../services/api';
 
@@ -26,6 +25,7 @@ export const TranslationProvider = ({ children }) => {
     welcomeMessageRegister: 'Welcome to our Quiz App! Join us and start learning today.',
     register: 'Register',
     backToLogin: 'Back to Login',
+    backButton: 'Back to Dashboard',
     welcomeMessage: 'Welcome to our Quiz App! Enjoy learning with our interactive quizzes.',
     login: 'Login',
     forgotPassword: 'Forgot Password',
@@ -33,14 +33,27 @@ export const TranslationProvider = ({ children }) => {
     loggedInSuccessfully: 'Logged in successfully',
     passwordResetEmailSent: 'Password reset email sent',
     passwordResetError: 'Error sending password reset email',
-    sendPasswordResetEmail: 'Reset Password',
+    sendPasswordResetEmail: 'Send Password Reset Email',
     optional: 'Optional',
     save: 'Save',
     cancel: 'Cancel',
     actions: 'Actions',
     addAdmin: 'Add Admin',
-    logout: 'Logout', // Add this key
-    searchPlaceholder: 'Search users...', // Ensure this key is present
+    logout: 'Logout',
+    searchPlaceholder: 'Search users...',
+    userUpdatedSuccessfully: 'User detail has been updated',
+    saveTranslation: 'Save Dictionary',
+    failedToFetchQuizzes: 'Failed to fetch quizzes. Please try again later.',
+    planDetails: 'Plan Details',
+    noQuizzesAvailable: 'No quizzes available for this plan.',
+    yourAnswer: 'Your Answer',
+    enterYourAnswer: 'Enter your answer',
+    submit: 'Submit',
+    answerSubmitted: 'Answer submitted',
+    failedToSubmitAnswer: 'Failed to submit answer',
+    loading: 'Loading...',
+    failedToFetchTopics: 'Failed to fetch topics',
+    noTopicsAvailable: 'No topics available'
   });
 
   const setTranslationContext = (newTranslations) => {

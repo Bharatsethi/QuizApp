@@ -1,4 +1,3 @@
-// General/sharedStyles.js
 import { StyleSheet } from 'react-native';
 import { COLORS, FONTS } from './colors';
 
@@ -29,6 +28,32 @@ const sharedStyles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: COLORS.white,
     marginBottom: 20,
+  },
+  flexRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  flexColumn: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  marginVertical: {
+    marginVertical: 10,
+  },
+  marginHorizontal: {
+    marginHorizontal: 10,
+  },
+  paddingVertical: {
+    paddingVertical: 10,
+  },
+  paddingHorizontal: {
+    paddingHorizontal: 10,
+  },
+  alignCenter: {
+    alignItems: 'center',
+  },
+  justifyCenter: {
+    justifyContent: 'center',
   },
 });
 

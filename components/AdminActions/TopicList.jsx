@@ -17,14 +17,14 @@ const TopicList = ({ route, navigation }) => {
         const response = await fetchTopics(lessonId);
         setTopics(response.data);
       } catch (error) {
-        Alert.alert('Error', `Failed to load ${translations.topic.toLowerCase()}s`);
+        Alert.alert(translations.error || 'Error', `${translations.failedToLoad || 'Failed to load'} ${translations.topic.toLowerCase() || 'topics'}`);
       } finally {
         setLoading(false);
       }
     };
 
     getTopics();
-  }, [lessonId]);
+  }, [lessonId, translations]);
 
   const renderTopicItem = ({ item }) => (
     <View style={styles.planItem}>
@@ -38,7 +38,7 @@ const TopicList = ({ route, navigation }) => {
       <View style={styles.container}>
         <Header />
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading...</Text>
+        <Text>{translations.loading || 'Loading...'}</Text>
       </View>
     );
   }
@@ -47,7 +47,7 @@ const TopicList = ({ route, navigation }) => {
     <View style={styles.container}>
       <Header />
       {topics.length === 0 ? (
-        <Text style={styles.noPlansText}>No {translations.topic.toLowerCase()}s available.</Text>
+        <Text style={styles.noPlansText}>{translations.noTopicsAvailable || 'No topics available.'}</Text>
       ) : (
         <FlatList
           data={topics}

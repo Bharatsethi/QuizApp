@@ -20,7 +20,7 @@ const UserPlanList = ({ navigation }) => {
         const accessResponse = await checkUserAccess('currentUserId'); // Replace with actual current user ID
         setUserAccess(accessResponse.data);
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch plans or user access');
+        Alert.alert(translations.error, translations.failedToFetchPlansOrUserAccess);
       }
     };
 
@@ -43,9 +43,9 @@ const UserPlanList = ({ navigation }) => {
     try {
       const userId = 'currentUserId'; // Replace with actual current user ID
       await requestAccess({ userId, planId });
-      Alert.alert('Success', 'Access request sent');
+      Alert.alert(translations.success, translations.accessRequestSent);
     } catch (error) {
-      Alert.alert('Error', 'Failed to request access');
+      Alert.alert(translations.error, translations.failedToRequestAccess);
     }
   };
 
@@ -57,24 +57,26 @@ const UserPlanList = ({ navigation }) => {
     }
   };
 
+  const renderPlanItem = ({ item }) => (
+    <View style={styles.planItem}>
+      <Text style={styles.planText}>{item.title}</Text>
+      <Text style={styles.planAdminText}>{`${translations.admin}: ${item.admin.username}`}</Text>
+      {orientation === 'LANDSCAPE' && <Text style={styles.planDescriptionText}>{item.description}</Text>}
+      <View style={styles.iconContainer}>
+        <TouchableOpacity onPress={() => handleAccessPlan(item._id)}>
+          <Icon name={userAccess[item._id] ? "unlock" : "key"} size={20} color="#000" style={styles.icon} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Header />
       <FlatList
         data={plans}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={styles.planItem}>
-            <Text style={styles.planText}>{item.title}</Text>
-            <Text style={styles.planAdminText}>{translations.admin}: {item.admin.username}</Text>
-            {orientation === 'LANDSCAPE' && <Text style={styles.planDescriptionText}>{item.description}</Text>}
-            <View style={styles.iconContainer}>
-              <TouchableOpacity onPress={() => handleAccessPlan(item._id)}>
-                <Icon name={userAccess[item._id] ? "unlock" : "key"} size={20} color="#000" style={styles.icon} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        renderItem={renderPlanItem}
         contentContainerStyle={styles.contentContainer}
       />
     </View>

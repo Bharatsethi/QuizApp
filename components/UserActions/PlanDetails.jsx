@@ -1,28 +1,34 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { fetchQuizzesByPlanId } from '../../services/api';
 import Header from '../General/Header';
-import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
+import styles from '../General/styles';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const PlanDetails = ({ route, navigation }) => {
   const { planId } = route.params;
   const [quizzes, setQuizzes] = useState([]);
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
-    const fetchQuizzes = async () => {
+    const fetchData = async () => {
       try {
         const response = await fetchQuizzesByPlanId(planId);
         setQuizzes(response.data);
       } catch (error) {
-        console.error('Failed to fetch quizzes:', error);
-        Alert.alert('Error', 'Failed to fetch quizzes. Please try again later.');
+        Alert.alert(translations.error, translations.failedToFetchQuizzes);
       }
     };
 
-    fetchQuizzes();
-  }, [planId]);
+    fetchData();
+  }, [planId, translations.error, translations.failedToFetchQuizzes]);
+
+  const handleManageChapters = () => {
+    navigation.navigate('ManageChapters', { plan: { _id: planId } });
+  };
 
   const renderQuizItem = ({ item }) => (
     <TouchableOpacity
@@ -36,9 +42,19 @@ const PlanDetails = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <Text style={styles.title}>{translations.plan} Details</Text>
+      {user.isAdmin && (
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('AdminDashboard')}>
+          <Icon name="arrow-left" size={16} color="#fff" />
+          <Text style={styles.backButtonText}>{translations.backToDashboard || 'Back to Dashboard'}</Text>
+        </TouchableOpacity>
+      )}
+      <Text style={styles.title}>{translations.planDetails}</Text>
+      <TouchableOpacity style={styles.addButton} onPress={handleManageChapters}>
+        <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
+        <Text style={styles.addButtonText}>{translations.manageChapters || 'Manage Chapters'}</Text>
+      </TouchableOpacity>
       {quizzes.length === 0 ? (
-        <Text style={styles.noQuizzesText}>No quizzes available for this plan.</Text>
+        <Text style={styles.noQuizzesText}>{translations.noQuizzesAvailable}</Text>
       ) : (
         <FlatList
           data={quizzes}

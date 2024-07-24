@@ -1,7 +1,5 @@
-// General/headerStyles.js
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { COLORS, FONTS } from './colors';
-import { Dimensions } from 'react-native';
 
 const headerStyles = StyleSheet.create({
   header: {
@@ -27,9 +25,10 @@ const headerStyles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 2,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray,
@@ -39,12 +38,12 @@ const headerStyles = StyleSheet.create({
     height: 50,
     resizeMode: 'contain',
   },
-  mainlogo: {
+  mainLogo: {
     width: 120,
     height: 120,
     resizeMode: 'contain',
     marginBottom: 10,
-   },
+  },
   messageContainer: {
     marginTop: 10,
     paddingHorizontal: 10,
@@ -53,19 +52,6 @@ const headerStyles = StyleSheet.create({
     fontSize: FONTS.sizeMedium,
     color: COLORS.textPrimary,
     width: Dimensions.get('window').width - 150,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.danger,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  logoutButtonText: {
-    color: COLORS.white,
-    fontSize: FONTS.sizeMedium,
-    fontWeight: 'bold',
   },
 });
 

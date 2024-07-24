@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, Button } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { fetchQuizByLessonId, submitAnswer } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
@@ -9,6 +9,7 @@ const ViewQuiz = ({ route, navigation }) => {
   const { lessonId } = route.params;
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(true);
   const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
@@ -17,12 +18,14 @@ const ViewQuiz = ({ route, navigation }) => {
         const response = await fetchQuizByLessonId(lessonId);
         setQuiz(response.data);
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch quiz');
+        Alert.alert(translations.error, translations.failedToFetchQuiz);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [lessonId]);
+  }, [lessonId, translations.error, translations.failedToFetchQuiz]);
 
   const handleInputChange = (questionId, text) => {
     setAnswers({ ...answers, [questionId]: text });
@@ -31,18 +34,28 @@ const ViewQuiz = ({ route, navigation }) => {
   const handleSubmit = async () => {
     try {
       await submitAnswer(quiz._id, answers);
-      Alert.alert('Success', 'Quiz submitted successfully');
+      Alert.alert(translations.success, translations.quizSubmitted);
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit quiz');
+      Alert.alert(translations.error, translations.failedToSubmitQuiz);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>{translations.loading}</Text>
+      </View>
+    );
+  }
 
   if (!quiz) {
     return (
       <View style={styles.container}>
         <Header />
-        <Text>Loading...</Text>
+        <Text>{translations.noQuizAvailable}</Text>
       </View>
     );
   }
@@ -60,13 +73,15 @@ const ViewQuiz = ({ route, navigation }) => {
               style={styles.quizInput}
               value={answers[item._id]}
               onChangeText={(text) => handleInputChange(item._id, text)}
-              placeholder="Type your answer here"
+              placeholder={translations.typeYourAnswer}
             />
           </View>
         )}
         contentContainerStyle={styles.contentContainer}
       />
-      <Button title={translations.submit} onPress={handleSubmit} />
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>{translations.submit}</Text>
+      </TouchableOpacity>
     </View>
   );
 };

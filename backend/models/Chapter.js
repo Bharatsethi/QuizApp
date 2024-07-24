@@ -1,10 +1,14 @@
 const mongoose = require('mongoose');
 
-const chapterSchema = new mongoose.Schema({
+const ChapterSchema = new mongoose.Schema({
   planId: { type: mongoose.Schema.Types.ObjectId, ref: 'Plan', required: true },
   title: { type: String, required: true },
-  introduction: { type: String },
-  overview: { type: String },
+  introduction: { type: String, required: true },
+  overview: { type: String, required: true },
+  admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  lessons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lesson' }],
+  quizzes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }],
+  createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Chapter', chapterSchema);
+module.exports = mongoose.model('Chapter', ChapterSchema);

@@ -16,7 +16,7 @@ const PlanList = ({ navigation }) => {
         const response = await fetchPlans();
         setPlans(response.data);
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch plans');
+        Alert.alert(translations.error || 'Error', translations.failedToFetchPlans || 'Failed to fetch plans');
       }
     };
 
@@ -28,7 +28,7 @@ const PlanList = ({ navigation }) => {
       const response = await fetchQuizzesByPlanId(planId);
       navigation.navigate('QuizList', { quizzes: response.data });
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch quizzes');
+      Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
     }
   };
 
@@ -36,9 +36,9 @@ const PlanList = ({ navigation }) => {
     try {
       await deletePlan(planId);
       setPlans(plans.filter((plan) => plan._id !== planId));
-      Alert.alert('Success', 'Plan deleted successfully');
+      Alert.alert(translations.success || 'Success', translations.planDeletedSuccessfully || 'Plan deleted successfully');
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete plan');
+      Alert.alert(translations.error || 'Error', translations.failedToDeletePlan || 'Failed to delete plan');
     }
   };
 
@@ -51,7 +51,7 @@ const PlanList = ({ navigation }) => {
       const response = await fetchPlans();
       setPlans(response.data);
     } catch (error) {
-      Alert.alert('Error', 'Failed to refresh plan list');
+      Alert.alert(translations.error || 'Error', translations.failedToRefreshPlanList || 'Failed to refresh plan list');
     }
   };
 
@@ -59,7 +59,8 @@ const PlanList = ({ navigation }) => {
     <View style={styles.container}>
       <Header />
       <TouchableOpacity style={styles.addButton} onPress={handleAddPlan}>
-        <Text style={styles.addButtonText}>{translations.addPlan}</Text>
+        <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
+        <Text style={styles.addButtonText}>{translations.addPlan || 'Add Plan'}</Text>
       </TouchableOpacity>
       <FlatList
         data={plans}
@@ -70,10 +71,11 @@ const PlanList = ({ navigation }) => {
             <View style={styles.iconContainer}>
               <TouchableOpacity onPress={() => handleViewQuizzes(item._id)}>
                 <Icon name="list" size={20} color="#000" style={styles.icon} />
-                <Text style={styles.planText}>{translations.viewQuizzes}</Text>
+                <Text style={styles.iconText}>{translations.viewQuizzes || 'View Quizzes'}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleDeletePlan(item._id)}>
                 <Icon name="trash" size={20} color="#000" style={styles.icon} />
+                <Text style={styles.iconText}>{translations.deletePlan || 'Delete Plan'}</Text>
               </TouchableOpacity>
             </View>
           </View>

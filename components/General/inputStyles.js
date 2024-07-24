@@ -1,13 +1,11 @@
-// General/inputStyles.js
 import { StyleSheet } from 'react-native';
-import { COLORS, FONTS } from './colors';
+import { COLORS } from './colors';
 
 const inputStyles = StyleSheet.create({
   input: {
     height: 40,
     borderColor: COLORS.gray,
     borderWidth: 1,
-    marginHorizontal: 20,
     paddingHorizontal: 10,
     borderRadius: 4,
     backgroundColor: COLORS.white,
@@ -17,7 +15,6 @@ const inputStyles = StyleSheet.create({
     height: 40,
     borderColor: COLORS.gray,
     borderWidth: 1,
-    marginHorizontal: 20,
     paddingHorizontal: 10,
     borderRadius: 4,
     backgroundColor: COLORS.white,

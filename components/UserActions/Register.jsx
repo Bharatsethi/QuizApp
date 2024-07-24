@@ -1,8 +1,7 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { register } from '../../services/api';
 import Header from '../General/Header';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import styles from '../General/styles';
 
@@ -74,11 +73,11 @@ const Register = ({ navigation }) => {
             <TouchableOpacity style={styles.primaryButton} onPress={handleRegister}>
               <Text style={styles.buttonText}>{translations.register}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.cancelButton, styles.backButton]} onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Login')}>
               <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
               <Text style={styles.buttonText}>{translations.backToLogin}</Text>
             </TouchableOpacity>
-            </View>
+          </View>
         )}
       </View>
     </View>

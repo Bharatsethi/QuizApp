@@ -12,43 +12,46 @@ const ManageMessages = ({ navigation }) => {
   const { messages, setMessages } = useContext(MessageContext);
   const { translations } = useContext(TranslationContext);
   const API_URL = 'http://192.168.0.75:3002';
-  
+
   useEffect(() => {
     fetchMessages();
   }, []);
 
   const fetchMessages = async () => {
     try {
-      const response = await axios.get('http://192.168.0.75:3002/messages');
+      const response = await axios.get(`${API_URL}/admin/messages`);
       setMessages(response.data);
     } catch (error) {
-      console.error('Failed to fetch messages Manage Messages:', error);
+      console.error('Failed to fetch messages:', error);
+      Alert.alert(translations.error || 'Error', translations.failedToFetchMessages || 'Failed to fetch messages.');
     }
   };
 
   const handleCreateMessage = async () => {
     if (message.trim() === '') {
-      Alert.alert('Error', `${translations.message} cannot be empty`);
+      Alert.alert(translations.error || 'Error', `${translations.message || 'Message'} ${translations.cannotBeEmpty || 'cannot be empty'}`);
       return;
     }
 
     try {
-      await axios.post('http://${API_URL}:3002/admin/messages', { text: message });
-      Alert.alert('Success', `${translations.message} created successfully`);
+      await axios.post(`${API_URL}/admin/messages`, { text: message });
+      Alert.alert(translations.success || 'Success', `${translations.message || 'Message'} ${translations.createdSuccessfully || 'created successfully'}`);
       setMessage('');
       fetchMessages();
     } catch (error) {
-      Alert.alert('Error', `Failed to create ${translations.message.toLowerCase()}`);
+      console.error('Create message error:', error);
+      Alert.alert(translations.error || 'Error', `${translations.failedToCreate || 'Failed to create'} ${translations.message ? translations.message.toLowerCase() : 'message'}`);
     }
   };
 
   const handleDeleteMessage = async (id) => {
     try {
-      await axios.delete(`http://${API_URL}:3002/admin/messages/${id}`);
-      Alert.alert('Success', `${translations.message} deleted successfully`);
+      await axios.delete(`${API_URL}/admin/messages/${id}`);
+      Alert.alert(translations.success || 'Success', `${translations.message || 'Message'} ${translations.deletedSuccessfully || 'deleted successfully'}`);
       fetchMessages();
     } catch (error) {
-      Alert.alert('Error', `Failed to delete ${translations.message.toLowerCase()}`);
+      console.error('Delete message error:', error);
+      Alert.alert(translations.error || 'Error', `${translations.failedToDelete || 'Failed to delete'} ${translations.message ? translations.message.toLowerCase() : 'message'}`);
     }
   };
 
@@ -61,34 +64,33 @@ const ManageMessages = ({ navigation }) => {
     </View>
   );
 
-  const handleGoToDashboard = () => {
-    navigation.navigate('AdminDashboard');
-  };
-
   return (
     <View style={styles.container}>
       <Header />
-      <Text style={styles.sectionTitle}>Manage {translations.messages}</Text>
-      <TextInput
-        style={styles.input}
-        value={message}
-        onChangeText={setMessage}
-        placeholder={`Enter your ${translations.message.toLowerCase()}`}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleCreateMessage}>
-        <Icon name="plus" size={16} color="#fff" style={styles.buttonIcon} />
-        <Text style={styles.buttonText}>Create {translations.message}</Text>
-      </TouchableOpacity>
+      <Text style={styles.sectionTitle}>{translations.manage} {translations.messages || 'Messages'}</Text>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={message}
+          onChangeText={setMessage}
+          placeholder={translations.enterYourMessage || 'Enter your message'}
+        />
+      </View>
       <FlatList
         data={messages}
         keyExtractor={(item) => item._id}
         renderItem={renderMessageItem}
         contentContainerStyle={styles.plansList}
       />
-      <TouchableOpacity style={styles.backButton} onPress={handleGoToDashboard}>
-        <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>Go to Dashboard</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleCreateMessage}>
+          <Icon name="save" size={20} color="#fff" />
+          <Text style={styles.buttonText}>{translations.save} {translations.message}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.buttonText}>{translations.cancel}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

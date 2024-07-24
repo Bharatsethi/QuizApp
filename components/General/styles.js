@@ -1,4 +1,3 @@
-// General/styles.js
 import commonStyles from './commonStyles';
 import buttonStyles from './buttonStyles';
 import headerStyles from './headerStyles';

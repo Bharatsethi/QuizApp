@@ -23,7 +23,6 @@ const ForgotPassword = ({ navigation }) => {
       Alert.alert(translations.success, translations.passwordResetEmailSent);
       navigation.navigate('Login');
     } catch (error) {
-      console.error('Error:', error);
       Alert.alert(translations.error, translations.passwordResetError);
     } finally {
       setLoading(false);

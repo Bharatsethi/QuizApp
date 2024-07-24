@@ -1,6 +1,6 @@
 // ChapterList.jsx
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { fetchChapters } from '../../services/api';
 import Header from '../General/Header';
 import styles from '../General/styles';
@@ -18,29 +18,37 @@ const ChapterList = ({ route, navigation }) => {
         setChapters(response.data);
       } catch (error) {
         console.error('Failed to fetch chapters:', error);
-        Alert.alert('Error', `Failed to fetch ${translations.chapter.toLowerCase()}s`);
+        Alert.alert(translations.error || 'Error', translations.failedToFetchChapters || `Failed to fetch ${translations.chapter.toLowerCase()}s`);
       }
     };
 
     getChapters();
-  }, [planId]);
+  }, [planId, translations]);
+
+  const renderChapterItem = ({ item }) => (
+    <View key={item._id} style={styles.chapterItem}>
+      <Text style={styles.chapterTitle}>{item.title}</Text>
+      <Text style={styles.chapterText}>{item.introduction}</Text>
+      <Text style={styles.chapterText}>{item.overview}</Text>
+      <TouchableOpacity
+        style={styles.primaryButton}
+        onPress={() => navigation.navigate('LessonList', { chapterId: item._id })}
+      >
+        <Text style={styles.buttonText}>View {translations.lessons}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
       <Header />
-      {chapters.map((chapter) => (
-        <View key={chapter._id} style={styles.chapterItem}>
-          <Text style={styles.chapterTitle}>{chapter.title}</Text>
-          <Text style={styles.chapterText}>{chapter.introduction}</Text>
-          <Text style={styles.chapterText}>{chapter.overview}</Text>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('LessonList', { chapterId: chapter._id })}
-          >
-            <Text style={styles.buttonText}>View {translations.lesson}s</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
+      <FlatList
+        data={chapters}
+        keyExtractor={(item) => item._id}
+        renderItem={renderChapterItem}
+        contentContainerStyle={styles.contentContainer}
+        ListEmptyComponent={<Text style={styles.emptyListText}>{translations.noChapters || 'No chapters available'}</Text>}
+      />
     </View>
   );
 };

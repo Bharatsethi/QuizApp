@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, Alert } from 'react-native';
+import { View, Text, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { fetchAnswers } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
@@ -8,6 +8,7 @@ import styles from '../General/styles';
 const ViewAnswers = ({ route }) => {
   const { quizId } = route.params;
   const [answers, setAnswers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
@@ -16,12 +17,24 @@ const ViewAnswers = ({ route }) => {
         const response = await fetchAnswers(quizId);
         setAnswers(response.data);
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch answers');
+        Alert.alert(translations.error || 'Error', translations.failedToFetchAnswers || 'Failed to fetch answers');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [quizId]);
+  }, [quizId, translations]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>{translations.loading || 'Loading...'}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -36,6 +49,7 @@ const ViewAnswers = ({ route }) => {
         )}
         contentContainerStyle={styles.contentContainer}
       />
+      {answers.length === 0 && <Text style={styles.noPlansText}>{translations.noAnswers || 'No answers available.'}</Text>}
     </View>
   );
 };

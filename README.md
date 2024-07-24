@@ -18,6 +18,11 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## Troubleshooting
 If you can't get this to work, see the Troubleshooting page.
+MangoDB connection failed : ensure mangoDB service is running
+Open a terminal or command prompt and run:
+### sudo systemctl status mongod
+or for Windows:
+### net start MongoDB
 
 ## Learn More
 To learn more about React Native, take a look at the following resources:
@@ -150,6 +155,60 @@ Welcome to the Quiz App project! This app is designed to provide an interactive 
   - react-native-vector-icons
 
 ## Installation
+
+### Setup Database - MangoDB
+1. Install MangoDB Compass locally
+2. Create a Local Database for testing
+3. Create a production database at MangoDB atlas: https://www.mongodb.com/products/platform/atlas-database?utm_source=compass&utm_medium=product
+
+### Setup API Server
+1. Spin a linex server - I am using lightsail linux server 
+2. Install npm and node
+#### Update package list
+sudo apt update
+
+#### Install Node.js and npm
+sudo apt install nodejs npm -y
+
+#### Verify installation
+node -v
+npm -v
+
+#### Install NodeSource
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+
+#### Install Node.js
+sudo apt install -y nodejs
+
+#### Install Git
+sudo apt install git -y
+
+#### Clone your repository
+git clone https://github.com/yourusername/your-repo.git
+
+#### Navigate to your project directory
+cd your-repo
+
+#### Install Dependencies
+npm install
+
+#### Configure Environment Variables
+nano .env
+
+#### Start Your Backend Server
+##### Install pm2 globally
+sudo npm install -g pm2
+
+##### Start your backend server
+pm2 start server.js
+
+##### Save the pm2 process list and corresponding environments
+pm2 save
+
+##### Set pm2 to start on system startup
+pm2 startup
+
+
 
 ### Backend
 

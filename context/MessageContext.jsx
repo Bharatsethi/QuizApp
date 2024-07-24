@@ -1,23 +1,22 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { fetchMessages } from '../services/api'; // Adjust the path based on your project structure
 
 const MessageContext = createContext();
 
 export const MessageProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
-  const API_URL = 'http://192.168.0.75:3002';
-  
+
   useEffect(() => {
-    const fetchMessages = async () => {
+    const getMessages = async () => {
       try {
-        const response = await axios.get('http://192.168.0.75:3002/messages');
+        const response = await fetchMessages();
         setMessages(response.data);
       } catch (error) {
         console.error('Failed to fetch messages MessageContext:', error);
       }
     };
 
-    fetchMessages();
+    getMessages();
   }, []);
 
   return (
