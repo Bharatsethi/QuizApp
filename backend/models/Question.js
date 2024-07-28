@@ -1,11 +1,14 @@
 const mongoose = require('mongoose');
 
 const QuestionSchema = new mongoose.Schema({
-  admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Added admin reference
+  admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   text: { type: String, required: true },
   type: { type: String, enum: ['multiple-choice', 'free-text'], required: true },
-  options: [{ type: String }],
-  correctAnswers: [{ type: String }], // Updated to an array of correct answers
+  options: [{
+    text: { type: String, required: function() { return this.type === 'multiple-choice'; } },
+    isCorrect: { type: Boolean, required: function() { return this.type === 'multiple-choice'; } }
+  }],
+  correctAnswers: [{ type: String }], // For free-text questions
   createdAt: { type: Date, default: Date.now }
 });
 
