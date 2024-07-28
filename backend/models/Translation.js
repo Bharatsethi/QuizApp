@@ -49,7 +49,9 @@ const translationSchema = new mongoose.Schema({
   failedToSubmitAnswer: { type: String, default: 'Failed to submit answer' },
   loading: { type: String, default: 'Loading...' },
   failedToFetchTopics: { type: String, default: 'Failed to fetch topics' },
-  noTopicsAvailable: { type: String, default: 'No topics available' }
+  noTopicsAvailable: { type: String, default: 'No topics available' },
+  add: { type: String, default: 'Add' },
+  quiz: { type: String, default: 'Quiz' },
 },  { suppressReservedKeysWarning: true });
 
 module.exports = mongoose.model('Translation', translationSchema);

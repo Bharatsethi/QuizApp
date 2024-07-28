@@ -1,49 +1,88 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { fetchLessons, deleteLesson } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
+import { NavigationContext } from '../../context/NavigationContext'; // Import NavigationContext
 
 const ManageLessons = ({ route, navigation }) => {
   const { chapter } = route.params;
   const [lessons, setLessons] = useState([]);
+  const { currentChapterId, setCurrentChapterId, setCurrentLessonId } = useContext(NavigationContext);
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetchLessons(chapter._id);
-        setLessons(response.data);
-      } catch (error) {
-        console.error('Failed to fetch lessons:', error);
-        Alert.alert(translations.error || 'Error', translations.failedToFetchLessons || 'Failed to fetch lessons. Please try again later.');
-      }
-    };
-    fetchData();
-  }, [chapter._id, translations]);
+    if (chapter) {
+      setCurrentChapterId(chapter._id); // Set current chapter ID in context
+    }
+  }, [chapter, setCurrentChapterId]);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetchLessons(currentChapterId);
+      setLessons(response.data);
+    } catch (error) {
+      console.error('Failed to fetch lessons:', error);
+      Alert.alert(translations.error || 'Error', translations.failedToFetchLessons || 'Failed to fetch lessons. Please try again later.');
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [currentChapterId, translations])
+  );
 
   const handleAddLesson = () => {
-    navigation.navigate('AddLesson', { chapterId: chapter._id });
+    navigation.navigate('AddLesson', { chapterId: currentChapterId });
   };
 
   const handleEditLesson = (lesson) => {
     navigation.navigate('EditLesson', { lesson });
   };
 
-  const handleDeleteLesson = async (lessonId) => {
+  const handleDeleteLesson = async (lessonId, action) => {
     try {
-      await deleteLesson(lessonId);
+      await deleteLesson(lessonId, action, currentChapterId, user.userId); // Pass adminId from user context
       setLessons(lessons.filter(lesson => lesson._id !== lessonId));
-      Alert.alert(translations.success || 'Success', `${translations.lesson} ${translations.deletedSuccessfully || 'deleted successfully'}`);
+      const successMessage = action === 'delete' ? translations.deletedSuccessfully : translations.unlinkedSuccessfully;
+      Alert.alert(translations.success || 'Success', `${translations.lesson} ${successMessage || 'action completed successfully'}`);
     } catch (error) {
-      console.error('Failed to delete lesson:', error);
-      Alert.alert(translations.error || 'Error', `${translations.failedToDelete || 'Failed to delete'} ${translations.lesson.toLowerCase()}`);
+      console.error('Failed to process lesson:', error);
+      const errorMessage = action === 'delete' ? translations.failedToDelete : translations.failedToUnlink;
+      Alert.alert(translations.error || 'Error', `${errorMessage || 'Failed to process'} ${translations.lesson.toLowerCase()}`);
     }
   };
 
+  const confirmDeleteOrUnlink = (lessonId) => {
+    Alert.alert(
+      translations.confirm || 'Confirm',
+      translations.confirmDeleteOrUnlink || 'Do you want to delete the lesson or just unlink it from the chapter?',
+      [
+        {
+          text: translations.delete || 'Delete',
+          onPress: () => handleDeleteLesson(lessonId, 'delete'),
+          style: 'destructive'
+        },
+        {
+          text: translations.unlink || 'Unlink',
+          onPress: () => handleDeleteLesson(lessonId, 'unlink')
+        },
+        {
+          text: translations.cancel || 'Cancel',
+          style: 'cancel'
+        }
+      ]
+    );
+  };
+
   const handleManageTopics = (lesson) => {
+    setCurrentLessonId(lesson._id);
     navigation.navigate('ManageTopics', { lesson });
   };
 
@@ -73,7 +112,7 @@ const ManageLessons = ({ route, navigation }) => {
               <TouchableOpacity onPress={() => handleEditLesson(item)}>
                 <Icon name="pencil" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteLesson(item._id)}>
+              <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
                 <Icon name="trash" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageTopics(item)}>

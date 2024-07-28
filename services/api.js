@@ -61,9 +61,17 @@ export const updatePlan = async (planId, planData) => {
   return apiClient.put(`/admin/plans/${planId}`, planData);
 };
 
-export const deletePlan = async (planId) => {
-  return apiClient.delete(`/admin/plans/${planId}`);
+export const deletePlan = async (planId, adminId) => {
+  return apiClient.delete(`/admin/plans/${planId}`, {
+    data: { adminId },
+  });
 };
+
+// Add user to plan
+export const addUserToPlan = (planId, userId) => {
+  return apiClient.post(`/admin/plans/${planId}/users/${userId}`);
+};
+
 
 // Chapters
 export const fetchChapters = (planId) => {
@@ -82,11 +90,12 @@ export const updateChapter = (chapterId, chapterData) => {
   return apiClient.put(`/admin/chapters/${chapterId}`, chapterData);
 };
 
-export const deleteChapter = (chapterId, action = 'delete', planId) => {
+export const deleteChapter = (chapterId, action = 'delete', planId, adminId) => {
   return apiClient.delete(`/admin/chapters/${chapterId}`, {
-    data: { action, planId },
+    data: { action, planId, adminId },
   });
 };
+
 
 // Users
 export const fetchUsers = async () => {
@@ -95,10 +104,6 @@ export const fetchUsers = async () => {
 
 export const fetchUsersbyAdmin = async () => {
   return apiClient.get('/admin/users');
-};
-
-export const addUserToPlan = (planId, userId) => {
-  return apiClient.post(`/admin/plans/${planId}/users/${userId}`);
 };
 
 export const updateUser = async (userId, userData) => {
@@ -123,43 +128,19 @@ export const createLesson = async (lessonData) => {
 };
 
 export const updateLesson = async (lessonId, lessonData) => {
-  return apiClient.put(`/admin/lessons/${lessonId}`, lessonData);
+    return apiClient.put(`/admin/lessons/${lessonId}`, lessonData);
 };
 
-export const deleteLesson = async (lessonId) => {
-  return apiClient.delete(`/admin/lessons/${lessonId}`);
+
+export const deleteLesson = (lessonId, action = 'delete', chapterId, adminId) => {
+  return apiClient.delete(`/admin/lessons/${lessonId}`, {
+    data: { action, chapterId, adminId },
+  });
 };
 
-// Link quiz to context endpoint (for example)
-router.post('/admin/link-quiz', async (req, res) => {
-  const { contextId, quizId, contextType, adminId } = req.body;
-  try {
-    let update;
-    switch (contextType) {
-      case 'plan':
-        update = await Plan.findByIdAndUpdate(contextId, { $push: { quizzes: quizId } });
-        break;
-      case 'chapter':
-        update = await Chapter.findByIdAndUpdate(contextId, { $push: { quizzes: quizId } });
-        break;
-      case 'lesson':
-        update = await Lesson.findByIdAndUpdate(contextId, { $push: { quizzes: quizId } });
-        break;
-      case 'topic':
-        update = await Topic.findByIdAndUpdate(contextId, { $push: { quizzes: quizId } });
-        break;
-      default:
-        return res.status(400).json({ error: 'Invalid context type' });
-    }
-    if (!update) {
-      return res.status(404).json({ error: 'Context not found' });
-    }
-    res.status(200).json({ message: 'Quiz linked successfully' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to link quiz' });
-  }
-});
-
+export const linkQuiz = async (quizId) => {
+  return apiClient.post(`/admin/link-quiz`);
+};
 
 // Topics
 export const fetchTopics = async (lessonId) => {
@@ -174,34 +155,12 @@ export const updateTopic = async (topicId, topicData) => {
   return apiClient.put(`/admin/topics/${topicId}`, topicData);
 };
 
-export const deleteTopic = async (topicId) => {
-  return apiClient.delete(`/admin/topics/${topicId}`);
+export const deleteTopic = (topicId, action = 'delete', lessonId, adminId) => {
+  return apiClient.delete(`/admin/topics/${topicId}`, {
+    data: { action, lessonId, adminId },
+  });
 };
 
-// Quizzes
-export const fetchQuizByLessonId = async (lessonId) => {
-  return apiClient.get(`/lessons/${lessonId}/quiz`);
-};
-
-export const fetchQuizzesByPlanId = async (planId) => {
-  return apiClient.get(`/plans/${planId}/quizzes`);
-};
-
-export const createQuiz = async (quizData) => {
-  return apiClient.post('/admin/quizzes', quizData);
-};
-
-export const updateQuiz = async (quizId, quizData) => {
-  return apiClient.put(`/admin/quizzes/${quizId}`, quizData);
-};
-
-export const deleteQuiz = async (quizId) => {
-  return apiClient.delete(`/admin/quizzes/${quizId}`);
-};
-
-export const submitQuiz = async (quizId, answers) => {
-  return apiClient.post(`/quizzes/${quizId}/submit`, { answers });
-};
 
 export const fetchAnswers = async (quizId) => {
   return apiClient.get(`/quiz/${quizId}/answers`);
@@ -209,6 +168,12 @@ export const fetchAnswers = async (quizId) => {
 
 export const submitAnswer = async (answerData) => {
   return apiClient.post('/answers', answerData);
+};
+
+export const linkQuizToContext = async (contextId, quizId, adminId) => {
+  return apiClient.post(`/admin/context/${contextId}/quizzes/${quizId}`, {
+    data: { adminId },
+  });
 };
 
 // Messages
@@ -254,12 +219,29 @@ export const forgotPassword = async (emailData) => {
   return apiClient.post('/forgot-password', emailData);
 };
 
-export const fetchQuestions = async () => {
-  return apiClient.get('/questions');
+export const fetchQuestions = async (adminId) => {
+  return apiClient.get('/admin/questions', { params: { adminId } });
 };
 
+
 export const createQuestion = async (questionData) => {
-  return apiClient.post('/admin/questions', questionData);
+  try {
+    const response = await apiClient.post('/admin/questions', questionData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create question:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+const loadQuestions = async () => {
+  try {
+    const adminId = user?.userId;
+    const response = await fetchQuestions(adminId);
+    setQuestions(response.data);
+  } catch (error) {
+    console.error('Failed to fetch questions:', error);
+  }
 };
 
 export const updateQuestion = async (questionId, questionData) => {
@@ -274,6 +256,56 @@ export const unlinkQuestionFromContext = async (contextId, questionId, contextTy
   return apiClient.delete(`/admin/${contextType}/${contextId}/questions/${questionId}`);
 };
 
-export const linkQuestionToQuiz = async (quizId, questionId) => {
-  return apiClient.post(`/admin/quizzes/${quizId}/questions/${questionId}`);
+export const linkQuestionToQuiz = async (quizId, questionId, adminId) => {
+  try {
+    const response = await apiClient.post(`/admin/quizzes/${quizId}/questions/${questionId}`, { adminId });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to link question:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+// Quizzes
+export const fetchQuizByLessonId = async (lessonId) => {
+  return apiClient.get(`/lessons/${lessonId}/quiz`);
+};
+
+export const fetchQuizzesByPlanId = async (planId) => {
+  return apiClient.get(`/plans/${planId}/quizzes`);
+};
+
+export const fetchQuizzes = async (contextId) => {
+  try {
+    const response = await apiClient.get('/quizzes', {
+      params: { contextId },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createQuiz = async (quizData) => {
+  try {
+    const response = await apiClient.post('/admin/quizzes', quizData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create quiz:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const updateQuiz = async (quizId, quizData) => {
+  return apiClient.put(`/admin/quizzes/${quizId}`, quizData);
+};
+
+export const deleteQuiz = async (quizId, adminId) => {
+  return apiClient.delete(`/admin/quizzes/${quizId}`, {
+    data: { adminId },
+  });
+};
+
+export const submitQuiz = async (quizId, answers) => {
+  return apiClient.post(`/quizzes/${quizId}/submit`, { answers });
 };

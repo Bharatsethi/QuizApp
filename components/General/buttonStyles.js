@@ -12,6 +12,25 @@ const buttonStyles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 16,
   },
+  questionContainer: {
+    marginBottom: 20,
+  },
+  toggleEditorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: COLORS.addexisitng, // or any color you prefer
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  addExistingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: COLORS.switchbutton ,
+    borderRadius: 5,
+    marginTop: 10,
+  },
   buttonContainer: {
     position: 'absolute',
     bottom: 20,

@@ -1,9 +1,9 @@
-// components/AdminActions/AddChapter.jsx
 import React, { useState, useContext, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { createChapter } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
+import AdvancedRTF from '../General/AdvancedRTF';
 import styles from '../General/styles';
 import buttonStyles from '../General/buttonStyles';
 import { TranslationContext } from '../../context/TranslationContext';
@@ -15,6 +15,7 @@ const AddChapter = ({ route, navigation }) => {
   const [title, setTitle] = useState('');
   const [introduction, setIntroduction] = useState('');
   const [overview, setOverview] = useState('');
+  const [useAdvancedEditor, setUseAdvancedEditor] = useState(false);
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
   const richTextIntroduction = useRef();
@@ -25,7 +26,6 @@ const AddChapter = ({ route, navigation }) => {
       Alert.alert(translations.error || 'Error', 'All fields are required');
       return;
     }
-
     try {
       const response = await createChapter({ planId, title, introduction, overview, admin: user.userId });
       if (response.status === 201) {
@@ -56,6 +56,10 @@ const AddChapter = ({ route, navigation }) => {
       </TouchableOpacity>
       <ScrollView style={{ paddingBottom: 100 }}>
         <Text style={styles.title}>{translations.addChapter || `Add ${translations.chapter || 'Chapter'}`}</Text>
+        <TouchableOpacity style={buttonStyles.addExistingButton} onPress={handleNavigateToExistingChapters}>
+          <Icon name="search" size={16} color="#fff" />
+          <Text style={buttonStyles.buttonText}>{translations.addExisting || 'Add Existing'} {translations.chapter}</Text>
+        </TouchableOpacity>
         <TextInput
           style={styles.input}
           value={title}
@@ -63,23 +67,33 @@ const AddChapter = ({ route, navigation }) => {
           placeholder={translations.enterChapterTitle || `Enter ${translations.chapter?.toLowerCase() || 'chapter'} title`}
         />
         <Text style={styles.label}>{translations.chapter} {translations.introduction || 'Introduction'}:</Text>
-        <RichTextEditor
-          ref={richTextIntroduction}
-          content={introduction}
-          onContentChange={setIntroduction}
-        />
+        {useAdvancedEditor ? (
+          <AdvancedRTF content={introduction} onContentChange={setIntroduction} />
+        ) : (
+          <RichTextEditor
+            ref={richTextIntroduction}
+            content={introduction}
+            onContentChange={setIntroduction}
+          />
+        )}
         <Text style={styles.label}>{translations.chapter} {translations.overview || 'Overview'}:</Text>
-        <RichTextEditor
-          ref={richTextOverview}
-          content={overview}
-          onContentChange={setOverview}
-        />
-        <TouchableOpacity style={buttonStyles.addExistingButton} onPress={handleNavigateToExistingChapters}>
-          <Icon name="search" size={16} color="#fff" />
-          <Text style={buttonStyles.buttonText}>{translations.addExisting || 'Add Existing'} {translations.chapter}</Text>
+        {useAdvancedEditor ? (
+          <AdvancedRTF content={overview} onContentChange={setOverview} />
+        ) : (
+          <RichTextEditor
+            ref={richTextOverview}
+            content={overview}
+            onContentChange={setOverview}
+          />
+        )}
+        <TouchableOpacity 
+          style={buttonStyles.toggleEditorButton}
+          onPress={() => setUseAdvancedEditor(!useAdvancedEditor)}
+        >
+          <Text style={buttonStyles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
         </TouchableOpacity>
       </ScrollView>
-      <View style={buttonStyles.buttonContainer}>
+      <View style={buttonStyles.superbuttonContainer}>
         <TouchableOpacity style={buttonStyles.primaryButton} onPress={handleAddChapter}>
           <Text style={buttonStyles.buttonText}>{translations.add || 'Add'} {translations.chapter}</Text>
         </TouchableOpacity>

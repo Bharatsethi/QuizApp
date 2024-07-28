@@ -1,9 +1,12 @@
+// components/AdminActions/EditChapter.jsx
 import React, { useState, useContext, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { updateChapter } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
+import AdvancedRTF from '../General/AdvancedRTF'; // Import the updated AdvancedRTF component
 import styles from '../General/styles';
+import buttonStyles from '../General/buttonStyles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -13,6 +16,7 @@ const EditChapter = ({ route, navigation }) => {
   const [title, setTitle] = useState(chapter.title);
   const [introduction, setIntroduction] = useState(chapter.introduction);
   const [overview, setOverview] = useState(chapter.overview);
+  const [useAdvancedEditor, setUseAdvancedEditor] = useState(false); // State to toggle between editors
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
   const richTextIntroduction = useRef();
@@ -41,37 +45,55 @@ const EditChapter = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
+      <TouchableOpacity style={buttonStyles.backButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>{translations.backToManage || 'Back to Manage'} {translations.chapter || 'Chapter'}</Text>
+        <Text style={buttonStyles.backButtonText}>{translations.backToManage || 'Back to Manage'} {translations.chapter || 'Chapter'}</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>{translations.edit || 'Edit'} {translations.chapter || 'Chapter'}</Text>
-      <TextInput
-        style={styles.input}
-        value={title}
-        onChangeText={setTitle}
-        placeholder={`${translations.enter || 'Enter'} ${translations.chapter?.toLowerCase() || 'chapter'} ${translations.title || 'title'}`}
-      />
-      <Text style={styles.label}>{translations.chapter || 'Chapter'} {translations.introduction || 'Introduction'}:</Text>
-      <RichTextEditor
-        ref={richTextIntroduction}
-        content={introduction}
-        onContentChange={setIntroduction}
-      />
-      <Text style={styles.label}>{translations.chapter || 'Chapter'} {translations.overview || 'Overview'}:</Text>
-      <RichTextEditor
-        ref={richTextOverview}
-        content={overview}
-        onContentChange={setOverview}
-      />
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleSaveChanges}>
-          <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>
+      <ScrollView style={{ paddingBottom: 100 }}>
+        <Text style={styles.title}>{translations.edit || 'Edit'} {translations.chapter || 'Chapter'}</Text>
+        <TextInput
+          style={styles.input}
+          value={title}
+          onChangeText={setTitle}
+          placeholder={`${translations.enter || 'Enter'} ${translations.chapter?.toLowerCase() || 'chapter'} ${translations.title || 'title'}`}
+        />
+        <Text style={styles.label}>{translations.chapter || 'Chapter'} {translations.introduction || 'Introduction'}:</Text>
+        {useAdvancedEditor ? (
+          <AdvancedRTF content={introduction} onContentChange={setIntroduction} />
+        ) : (
+          <RichTextEditor
+            ref={richTextIntroduction}
+            content={introduction}
+            onContentChange={setIntroduction}
+          />
+        )}
+        <Text style={styles.label}>{translations.chapter || 'Chapter'} {translations.overview || 'Overview'}:</Text>
+        {useAdvancedEditor ? (
+          <AdvancedRTF content={overview} onContentChange={setOverview} />
+        ) : (
+          <RichTextEditor
+            ref={richTextOverview}
+            content={overview}
+            onContentChange={setOverview}
+          />
+        )}
+        
+        <TouchableOpacity 
+          style={buttonStyles.toggleEditorButton}
+          onPress={() => setUseAdvancedEditor(!useAdvancedEditor)}
+        >
+          <Text style={buttonStyles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
-          <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
-        </TouchableOpacity>
-      </View>
+        </ScrollView>
+        <View style={buttonStyles.buttonContainer}>
+          <TouchableOpacity style={buttonStyles.primaryButton} onPress={handleSaveChanges}>
+            <Text style={buttonStyles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={buttonStyles.cancelButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
+            <Text style={buttonStyles.buttonText}>{translations.cancel || 'Cancel'}</Text>
+          </TouchableOpacity>
+        </View>
+      
     </View>
   );
 };

@@ -5,16 +5,26 @@ import { fetchChapters, deleteChapter } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
+import { NavigationContext } from '../../context/NavigationContext';
 import styles from '../General/styles';
 
 const ManageChapters = ({ route, navigation }) => {
   const { plan } = route.params;
   const [chapters, setChapters] = useState([]);
+  const { currentPlanId, setCurrentPlanId, setCurrentChapterId } = useContext(NavigationContext);
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
+
+  useEffect(() => {
+    if (plan) {
+      setCurrentPlanId(plan._id); // Set current plan ID in context
+    }
+  }, [plan, setCurrentPlanId]);
 
   const fetchData = async () => {
     try {
-      const response = await fetchChapters(plan._id);
+      const response = await fetchChapters(currentPlanId);
       setChapters(response.data);
     } catch (error) {
       console.error('Failed to fetch chapters:', error);
@@ -25,48 +35,41 @@ const ManageChapters = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [plan._id])
+    }, [currentPlanId])
   );
 
   const handleAddChapter = () => {
-    navigation.navigate('AddChapter', { planId: plan._id });
+    navigation.navigate('AddChapter', { planId: currentPlanId });
   };
 
   const handleEditChapter = (chapter) => {
     navigation.navigate('EditChapter', { chapter });
   };
 
-  const handleDeleteChapter = async (chapterId) => {
+  const handleDeleteChapter = async (chapterId, action) => {
+    try {
+      await deleteChapter(chapterId, action, currentPlanId, user.userId);
+      setChapters(chapters.filter(chapter => chapter._id !== chapterId));
+      Alert.alert(translations.success || 'Success', `${translations.chapter} ${action === 'delete' ? translations.deletedSuccessfully : translations.unlinkedSuccessfully}`);
+    } catch (error) {
+      console.error(`Failed to ${action} chapter:`, error);
+      Alert.alert(translations.error || 'Error', `${action === 'delete' ? translations.failedToDelete : translations.failedToUnlink} ${translations.chapter.toLowerCase()}`);
+    }
+  };
+
+  const confirmDeleteOrUnlink = (chapterId) => {
     Alert.alert(
       translations.confirm || 'Confirm',
       translations.confirmDeleteOrUnlink || 'Do you want to delete the chapter or just unlink it from the plan?',
       [
         {
           text: translations.delete || 'Delete',
-          onPress: async () => {
-            try {
-              await deleteChapter(chapterId, 'delete');
-              setChapters(chapters.filter(chapter => chapter._id !== chapterId));
-              Alert.alert(translations.success || 'Success', `${translations.chapter} ${translations.deletedSuccessfully || 'deleted successfully'}`);
-            } catch (error) {
-              console.error('Failed to delete chapter:', error);
-              Alert.alert(translations.error || 'Error', `${translations.failedToDelete || 'Failed to delete'} ${translations.chapter.toLowerCase()}`);
-            }
-          },
+          onPress: () => handleDeleteChapter(chapterId, 'delete'),
           style: 'destructive'
         },
         {
           text: translations.unlink || 'Unlink',
-          onPress: async () => {
-            try {
-              await deleteChapter(chapterId, 'unlink');
-              setChapters(chapters.filter(chapter => chapter._id !== chapterId));
-              Alert.alert(translations.success || 'Success', `${translations.chapter} ${translations.unlinkedSuccessfully || 'unlinked successfully'}`);
-            } catch (error) {
-              console.error('Failed to unlink chapter:', error);
-              Alert.alert(translations.error || 'Error', `${translations.failedToUnlink || 'Failed to unlink'} ${translations.chapter.toLowerCase()}`);
-            }
-          }
+          onPress: () => handleDeleteChapter(chapterId, 'unlink')
         },
         {
           text: translations.cancel || 'Cancel',
@@ -77,12 +80,14 @@ const ManageChapters = ({ route, navigation }) => {
   };
 
   const handleManageLessons = (chapter) => {
+    setCurrentChapterId(chapter._id);
     navigation.navigate('ManageLessons', { chapter });
   };
 
   const handleManageQuizzes = (chapter) => {
     navigation.navigate('ManageQuizzes', { contextId: chapter._id, contextType: 'chapter' });
   };
+  
 
   return (
     <View style={styles.container}>
@@ -106,7 +111,7 @@ const ManageChapters = ({ route, navigation }) => {
               <TouchableOpacity onPress={() => handleEditChapter(item)}>
                 <Icon name="pencil" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteChapter(item._id)}>
+              <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
                 <Icon name="trash" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageLessons(item)}>

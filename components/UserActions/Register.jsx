@@ -4,6 +4,7 @@ import { register } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
 import styles from '../General/styles';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Register = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -21,7 +22,7 @@ const Register = ({ navigation }) => {
     setLoading(true);
 
     try {
-      await register({ username, email, password });
+      await register({ username, email, password, role: 'regular' }); // Ensure role is set to 'regular'
       Alert.alert(translations.success, translations.userRegisteredSuccessfully);
       navigation.navigate('Login');
     } catch (error) {
@@ -69,11 +70,11 @@ const Register = ({ navigation }) => {
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
-          <View style={styles.buttonContainer}>
+          <View style={styles.superbuttonContainer}>
             <TouchableOpacity style={styles.primaryButton} onPress={handleRegister}>
               <Text style={styles.buttonText}>{translations.register}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.navigate('Login')}>
               <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
               <Text style={styles.buttonText}>{translations.backToLogin}</Text>
             </TouchableOpacity>

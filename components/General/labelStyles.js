@@ -84,6 +84,12 @@ const labelStyles = StyleSheet.create({
     color: COLORS.textPrimary,
     marginBottom: 10,
   },
+  noQuizzesText: {
+    fontSize: 16,
+    color: '#000',
+    textAlign: 'center',
+    marginTop: 20,
+  },
 });
 
 export default labelStyles;

@@ -5,11 +5,15 @@ import { fetchPlans, deletePlan, addUserToPlan } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
+import { NavigationContext } from '../../context/NavigationContext';
 import styles from '../General/styles';
 
 const ManagePlans = ({ navigation }) => {
   const [plans, setPlans] = useState([]);
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
+  const { setCurrentPlanId } = useContext(NavigationContext);
 
   const fetchData = async () => {
     try {
@@ -24,7 +28,7 @@ const ManagePlans = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [])
+    }, [translations])
   );
 
   const handleAddPlan = () => {
@@ -37,7 +41,7 @@ const ManagePlans = ({ navigation }) => {
 
   const handleDeletePlan = async (planId) => {
     try {
-      await deletePlan(planId);
+      await deletePlan(planId, user.userId);
       setPlans(plans.filter(plan => plan._id !== planId));
       Alert.alert(translations.success || 'Success', `${translations.plan} ${translations.deletedSuccessfully || 'deleted successfully'}`);
     } catch (error) {
@@ -47,12 +51,17 @@ const ManagePlans = ({ navigation }) => {
   };
 
   const handleManageChapters = (plan) => {
+    setCurrentPlanId(plan._id);
     navigation.navigate('ManageChapters', { plan });
+  };
+
+  const handleManageQuizzes = (plan) => {
+    navigation.navigate('ManageQuizzes', { contextId: plan._id, contextType: 'plan' });
   };
 
   const handleViewPlanAsUser = async (plan) => {
     try {
-      await addUserToPlan(plan._id, 'adminId'); // Assuming 'adminId' is the admin's ID
+      await addUserToPlan(plan._id, user.userId);
       navigation.navigate('PlanDetails', { planId: plan._id });
     } catch (error) {
       Alert.alert(translations.error || 'Error', translations.failedToAddUserToPlan || 'Failed to add user to plan.');
@@ -89,6 +98,9 @@ const ManagePlans = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleViewPlanAsUser(item)}>
                 <Icon name="eye" size={20} color="#000" style={styles.icon} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
+                <Icon name="question-circle" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
             </View>
           </View>

@@ -89,6 +89,8 @@ mongoose.connect(process.env.MONGODB_URI)
             searchPlaceholder: 'Search users...',
             userUpdatedSuccessfully: 'User detail has been updated',
             saveTranslation: 'Save Dictionary',
+            add: 'Add',
+            quiz: 'Quiz',
           });
 
           console.log('Default translations object:', defaultTranslations);

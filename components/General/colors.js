@@ -12,6 +12,8 @@ export const COLORS = {
   textPrimary: '#333',
   textSecondary: '#555',
   textTertiary: '#777',
+  addexisitng:'#4B9CD3',
+  switchbutton : '#FFA500',
 };
 
 export const FONTS = {
