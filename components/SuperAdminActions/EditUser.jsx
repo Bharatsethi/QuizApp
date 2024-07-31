@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { TranslationContext } from '../../context/TranslationContext';
 import Header from '../General/Header';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 import { updateUser } from '../../services/api'; // Import the function from api.js
 
 const EditUser = ({ route, navigation }) => {

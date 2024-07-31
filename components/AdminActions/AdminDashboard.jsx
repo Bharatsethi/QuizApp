@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, Alert, Modal } from 'react-nati
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from '../General/Header';
 import { fetchPlans, fetchUsersbyAdmin, fetchTranslations, deletePlan, addUserToPlan } from '../../services/api';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 import { TranslationContext } from '../../context/TranslationContext';
 
 const AdminDashboard = ({ navigation }) => {

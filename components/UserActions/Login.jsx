@@ -6,7 +6,7 @@ import jwt_decode from 'jwt-decode';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');

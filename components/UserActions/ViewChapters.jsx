@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { fetchChapters } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const ViewChapters = ({ route, navigation }) => {
   const { planId } = route.params;

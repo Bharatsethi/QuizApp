@@ -1,85 +1,58 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { WebView } from 'react-native-webview';
-import PropTypes from 'prop-types';
-
-const createHtmlContent = (content) => `
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <script src="https://cdn.ckeditor.com/4.16.0/standard-all/ckeditor.js"></script>
-      <style>
-        body { margin: 0; padding: 0; }
-        .editor-container { height: 100vh; }
-      </style>
-    </head>
-    <body>
-      <textarea name="editor" id="editor">${content}</textarea>
-      <script>
-        CKEDITOR.replace('editor', {
-          toolbar: [
-            { name: 'document', items: ['Source', '-', 'NewPage', 'Preview', 'Print', '-', 'Templates'] },
-            { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteText', '-', 'Undo', 'Redo'] },
-            { name: 'editing', items: ['Find', 'Replace', '-', 'SelectAll', '-', 'SpellChecker'] },
-            { name: 'forms', items: ['Form', 'Checkbox', 'Radio', 'TextField', 'Textarea', 'Select', 'Button', 'ImageButton', 'HiddenField'] },
-            '/',
-            { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
-            { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },
-            { name: 'links', items: ['Link', 'Unlink', 'Anchor'] },
-            { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak'] },
-            '/',
-            { name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize'] },
-            { name: 'colors', items: ['TextColor', 'BGColor'] },
-            { name: 'tools', items: ['Maximize', 'ShowBlocks'] },
-            { name: 'about', items: ['About'] }
-          ],
-          height: '90vh'
-        });
-
-        CKEDITOR.instances.editor.on('change', function() {
-          window.ReactNativeWebView.postMessage(CKEDITOR.instances.editor.getData());
-        });
-
-        document.addEventListener('message', function(event) {
-          CKEDITOR.instances.editor.setData(event.data);
-        });
-      </script>
-    </body>
-  </html>
-`;
+import { View, StyleSheet } from 'react-native';
 
 const AdvancedRTF = ({ content, onContentChange }) => {
-  const webViewRef = useRef();
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Rich Text Editor</title>
+      <link href="https://cdn.syncfusion.com/ej2/material.css" rel="stylesheet">
+      <script src="https://cdn.syncfusion.com/ej2/dist/ej2.min.js"></script>
+    </head>
+    <body>
+      <div id="defaultRTE">${content}</div>
+      <script>
+        var defaultRTE = new ej.richtexteditor.RichTextEditor({
+          value: '${content}',
+          change: function (args) {
+            window.ReactNativeWebView.postMessage(args.value);
+          }
+        });
+        defaultRTE.appendTo('#defaultRTE');
+      </script>
+    </body>
+    </html>
+  `;
 
   useEffect(() => {
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`CKEDITOR.instances.editor.setData(\`${content}\`); true;`);
-    }
-  }, [content]);
+    // License key setup
+    window.ej.base.License.register('YOUR_SYNCFUSION_LICENSE_KEY');
+  }, []);
 
   return (
-    <WebView
-      ref={webViewRef}
-      originWhitelist={['*']}
-      source={{ html: createHtmlContent(content) }}
-      onMessage={(event) => {
-        onContentChange(event.nativeEvent.data);
-      }}
-      javaScriptEnabled={true}
-      domStorageEnabled={true}
-      style={{ flex: 1 }}
-    />
+    <View style={styles.container}>
+      <WebView
+        originWhitelist={['*']}
+        source={{ html: htmlContent }}
+        onMessage={(event) => onContentChange(event.nativeEvent.data)}
+        style={styles.webview}
+      />
+    </View>
   );
 };
 
-AdvancedRTF.propTypes = {
-  content: PropTypes.string,
-  onContentChange: PropTypes.func.isRequired,
-};
-
-AdvancedRTF.defaultProps = {
-  content: '',
-};
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  webview: {
+    flex: 1,
+  },
+});
 
 export default AdvancedRTF;

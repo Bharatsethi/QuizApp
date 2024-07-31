@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } fro
 import axios from 'axios';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const UserProfile = ({ route }) => {
   const { userId } = route.params;

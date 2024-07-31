@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { fetchTranslations, updateTranslations } from '../../services/api';
 import Header from '../General/Header';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 import { TranslationContext } from '../../context/TranslationContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
 

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { fetchChapters } from '../../services/api';
 import Header from '../General/Header';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 import { TranslationContext } from '../../context/TranslationContext';
 
 const ChapterList = ({ route, navigation }) => {

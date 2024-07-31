@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { fetchTopics } from '../../services/api';
 import Header from '../General/Header';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 import { TranslationContext } from '../../context/TranslationContext';
 
 const ViewTopics = ({ route, navigation }) => {

@@ -3,7 +3,7 @@ import { View, Text, FlatList, Alert } from 'react-native';
 import { fetchAnswers } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const AnswerList = ({ route }) => {
   const { quizId } = route.params;

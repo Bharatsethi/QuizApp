@@ -9,6 +9,7 @@ import Login from './components/UserActions/Login';
 import Register from './components/UserActions/Register';
 import ForgotPassword from './components/UserActions/ForgotPassword';
 import { Text } from 'react-native'; // Import Text for Suspense fallback
+import { registerLicense } from '@syncfusion/ej2-base';
 
 const Stack = createStackNavigator();
 

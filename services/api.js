@@ -227,9 +227,20 @@ export const fetchQuestions = async (adminId) => {
 export const createQuestion = async (questionData) => {
   try {
     const response = await apiClient.post('/admin/questions', questionData);
+    return response; // Ensure response is returned and not just response.data
+  } catch (error) {
+    console.error('Failed to create question route:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+// Function to resequence questions
+export const resequenceQuestions = async (quizId, questionIds) => {
+  try {
+    const response = await apiClient.post(`/admin/quizzes/${quizId}/resequence`, { questionIds });
     return response.data;
   } catch (error) {
-    console.error('Failed to create question:', error.response ? error.response.data : error.message);
+    console.error('Failed to resequence questions:', error.response ? error.response.data : error.message);
     throw error;
   }
 };

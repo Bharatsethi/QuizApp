@@ -4,8 +4,8 @@ import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { updateLesson } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
-import AdvancedRTF from '../General/AdvancedRTF'; // Import the new AdvancedRTF component
-import styles from '../General/styles';
+import AdvancedRTF from '../General/AdvancedRTFold'; // Import the new AdvancedRTF component
+import styles from '../General/stylesOld';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import Icon from 'react-native-vector-icons/FontAwesome';

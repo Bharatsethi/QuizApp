@@ -47,6 +47,10 @@ const buttonStyles = StyleSheet.create({
     marginHorizontal: 5,
     marginBottom: 10,
   },
+  optionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   correctButton: {
     backgroundColor: COLORS.success,
     padding: 10,

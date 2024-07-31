@@ -9,6 +9,7 @@ const QuestionSchema = new mongoose.Schema({
     isCorrect: { type: Boolean, required: function() { return this.type === 'multiple-choice'; } }
   }],
   correctAnswers: [{ type: String }], // For free-text questions
+  quizIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }], // New field to store associated quiz IDs
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { fetchLessons } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const ViewLessons = ({ route, navigation }) => {
   const { chapterId } = route.params;

@@ -5,7 +5,7 @@ import { fetchUsers, deleteUser } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const UserList = ({ navigation }) => {
   const [users, setUsers] = useState([]);

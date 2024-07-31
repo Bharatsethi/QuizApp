@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Alert, TextInput } from 'react-
 import { fetchQuizById, submitQuiz } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const QuizDetails = ({ navigation, route }) => {
   const { quizId } = route.params;

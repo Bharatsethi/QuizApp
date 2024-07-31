@@ -501,10 +501,10 @@ router.delete('/admin/quizzes/:id', async (req, res) => {
 
 // Create Question
 router.post('/admin/questions', async (req, res) => {
-  const { quizId, text, options, type, adminId } = req.body;
+  const { quizIds, text, options, type, adminId } = req.body;
 
-  if (!quizId || !text || !type || !adminId) {
-    return res.status(400).json({ error: 'quizId, text, type, and adminId are required' });
+  if (!quizIds || !text || !type || !adminId) {
+    return res.status(400).json({ error: 'quizIds, text, type, and adminId are required' });
   }
 
   try {
@@ -513,14 +513,41 @@ router.post('/admin/questions', async (req, res) => {
       type,
       options: type === 'multiple-choice' ? options : undefined,
       admin: adminId,
+      quizIds
     });
     await newQuestion.save();
     res.status(201).json(newQuestion);
   } catch (error) {
-    console.error('Failed to create question:', error);
+    console.error('Failed to create question api:', error);
     res.status(500).json({ error: 'Failed to create question' });
   }
 });
+
+router.post('/admin/quizzes/:quizId/resequence', async (req, res) => {
+  const { quizId } = req.params;
+  const { questionIds } = req.body;
+
+  if (!questionIds || !Array.isArray(questionIds)) {
+    return res.status(400).json({ error: 'questionIds is required and should be an array' });
+  }
+
+  try {
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    // Update the sequence of questions
+    quiz.questions = questionIds;
+    await quiz.save();
+
+    res.status(200).json({ message: 'Questions resequenced successfully' });
+  } catch (error) {
+    console.error('Failed to resequence questions:', error);
+    res.status(500).json({ error: 'Failed to resequence questions' });
+  }
+});
+
 
 router.post('/register', async (req, res) => {
   const { username, email, password, role } = req.body;

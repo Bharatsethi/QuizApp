@@ -5,7 +5,7 @@ import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const LinkChapters = ({ route, navigation }) => {
   const { plan } = route.params;

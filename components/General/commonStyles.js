@@ -75,12 +75,6 @@ const commonStyles = StyleSheet.create({
     marginVertical: 5,
     borderRadius: 5,
   },
-  selectedOption: {
-    backgroundColor: '#d0d0d0',
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 5,
-  },
   flexRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -92,6 +86,7 @@ const commonStyles = StyleSheet.create({
     borderRadius: 4,
     flex: 1,
     alignItems: 'center',
+    marginRight: 5,
   },
   quizItem: {
     backgroundColor: COLORS.white,

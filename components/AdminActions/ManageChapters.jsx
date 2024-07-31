@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import { NavigationContext } from '../../context/NavigationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const ManageChapters = ({ route, navigation }) => {
   const { plan } = route.params;

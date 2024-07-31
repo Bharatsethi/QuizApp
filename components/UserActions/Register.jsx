@@ -3,7 +3,7 @@ import { View, Text, TextInput, Alert, TouchableOpacity, ActivityIndicator } fro
 import { register } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Register = ({ navigation }) => {

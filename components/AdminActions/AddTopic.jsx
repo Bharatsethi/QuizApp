@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'reac
 import { createTopic } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
-import AdvancedRTF from '../General/AdvancedRTF'; // Import the new AdvancedRTF component
-import styles from '../General/styles';
+import AdvancedRTF from '../General/AdvancedRTFold'; // Import the new AdvancedRTF component
+import styles from '../General/stylesOld';
 import buttonStyles from '../General/buttonStyles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';

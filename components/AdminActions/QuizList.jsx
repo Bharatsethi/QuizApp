@@ -4,7 +4,7 @@ import { fetchQuizzesByPlanId } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const QuizList = ({ navigation, route }) => {
   const { planId } = route.params;

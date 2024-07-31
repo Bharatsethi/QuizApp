@@ -4,7 +4,7 @@ import { fetchPlans, requestAccess, checkUserAccess } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const UserPlanList = ({ navigation }) => {
   const [plans, setPlans] = useState([]);

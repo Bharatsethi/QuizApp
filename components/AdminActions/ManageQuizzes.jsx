@@ -1,33 +1,41 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, Modal, Button } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { fetchQuizzes, deleteQuiz, linkQuizToContext } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import { UserContext } from '../../context/UserContext';
+import { NavigationContext } from '../../context/NavigationContext';
+import styles from '../General/stylesOld';
 
 const ManageQuizzes = ({ route, navigation }) => {
-  const { context } = route.params;
+  const { contextId, contextType } = route.params;
   const [quizzes, setQuizzes] = useState([]);
   const [availableQuizzes, setAvailableQuizzes] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
+  const { setCurrentQuizId } = useContext(NavigationContext);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetchQuizzes(context._id);
-        setQuizzes(response.data);
-      } catch (error) {
-        console.error('Failed to fetch quizzes:', error);
-        Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes. Please try again later.');
-      }
-    };
-    fetchData();
-  }, [context._id, translations]);
+  const fetchData = async () => {
+    try {
+      const response = await fetchQuizzes(contextId);
+      setQuizzes(response);
+    } catch (error) {
+      console.error('Failed to fetch quizzes:', error);
+      Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes. Please try again later.');
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [contextId, translations])
+  );
 
   const handleAddQuiz = () => {
-    navigation.navigate('AddQuiz', { contextId: context._id });
+    navigation.navigate('AddQuiz', { contextId, contextType });
   };
 
   const handleEditQuiz = (quiz) => {
@@ -36,7 +44,7 @@ const ManageQuizzes = ({ route, navigation }) => {
 
   const handleDeleteQuiz = async (quizId) => {
     try {
-      await deleteQuiz(quizId);
+      await deleteQuiz(quizId, user.userId);
       setQuizzes(quizzes.filter(quiz => quiz._id !== quizId));
       Alert.alert(translations.success || 'Success', `${translations.quiz} ${translations.deletedSuccessfully || 'deleted successfully'}`);
     } catch (error) {
@@ -46,13 +54,14 @@ const ManageQuizzes = ({ route, navigation }) => {
   };
 
   const handleManageQuestions = (quiz) => {
+    setCurrentQuizId(quiz._id);
     navigation.navigate('ManageQuestions', { quiz });
   };
 
   const handleLinkQuiz = async () => {
     try {
-      const response = await fetchQuizzes(); // Fetch all quizzes to allow selection
-      const availableQuizzes = response.data.filter((quiz) => !quizzes.some((q) => q._id === quiz._id));
+      const response = await fetchQuizzes();
+      const availableQuizzes = response.filter((quiz) => !quizzes.some((q) => q._id === quiz._id));
       setAvailableQuizzes(availableQuizzes);
       setModalVisible(true);
     } catch (error) {
@@ -62,7 +71,7 @@ const ManageQuizzes = ({ route, navigation }) => {
 
   const linkSelectedQuiz = async (quizId) => {
     try {
-      await linkQuizToContext(context._id, quizId);
+      await linkQuizToContext(contextId, quizId, user.userId);
       setQuizzes([...quizzes, availableQuizzes.find((q) => q._id === quizId)]);
       Alert.alert(translations.success || 'Success', translations.quizLinkedSuccessfully || 'Quiz linked successfully');
       setModalVisible(false);
@@ -104,38 +113,42 @@ const ManageQuizzes = ({ route, navigation }) => {
         onPress={() => navigation.goBack()}
       >
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>Back</Text>
+        <Text style={styles.backButtonText}>{translations.backToManage || 'Back to Manage'}</Text>
       </TouchableOpacity>
-      <Text style={styles.sectionTitle}>Manage {translations.quizzes} for {context.title}</Text>
+      <Text style={styles.sectionTitle}>{translations.manage} {translations.quizzes} {translations.for} {contextType}</Text>
       <TouchableOpacity style={styles.addButton} onPress={handleAddQuiz}>
         <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>Add {translations.quiz}</Text>
+        <Text style={styles.addButtonText}>{translations.addQuiz || 'Add Quiz'}</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.addButton} onPress={handleLinkQuiz}>
         <Icon name="link" size={16} color="#fff" style={styles.addButtonIcon} />
         <Text style={styles.addButtonText}>{translations.link} {translations.quiz}</Text>
       </TouchableOpacity>
-      <FlatList
-        data={quizzes}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={styles.quizItem}>
-            <Text style={styles.quizText}>{item.title}</Text>
-            <View style={styles.iconContainer}>
-              <TouchableOpacity onPress={() => handleEditQuiz(item)}>
-                <Icon name="pencil" size={20} color="#000" style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteQuiz(item._id)}>
-                <Icon name="trash" size={20} color="#000" style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleManageQuestions(item)}>
-                <Icon name="question-circle" size={20} color="#000" style={styles.icon} />
-              </TouchableOpacity>
+      {quizzes.length === 0 ? (
+        <Text style={styles.noQuizzesText}>{translations.noQuizzesAvailable || 'No quizzes available for this plan.'}</Text>
+      ) : (
+        <FlatList
+          data={quizzes}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <View style={styles.quizItem}>
+              <Text style={styles.quizText}>{item.title}</Text>
+              <View style={styles.iconContainer}>
+                <TouchableOpacity onPress={() => handleEditQuiz(item)}>
+                  <Icon name="pencil" size={20} color="#000" style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteQuiz(item._id)}>
+                  <Icon name="trash" size={20} color="#000" style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleManageQuestions(item)}>
+                  <Icon name="book" size={20} color="#000" style={styles.icon} />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
-        contentContainerStyle={styles.plansList}
-      />
+          )}
+          contentContainerStyle={styles.plansList}
+        />
+      )}
       {renderAvailableQuizzes()}
     </View>
   );

@@ -5,7 +5,7 @@ import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MessageContext from '../../context/MessageContext';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/styles';
+import styles from '../General/stylesOld';
 
 const ManageMessages = ({ navigation }) => {
   const [message, setMessage] = useState('');
