@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import Header from '../General/Header';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
 
 const QuizList = ({ route, navigation }) => {

@@ -406,7 +406,11 @@ router.get('/quizzes', async (req, res) => {
 // Create a new quiz
 router.post('/admin/quizzes', async (req, res) => {
   const { contextId, contextType, title, questions, googleFormUrl, adminId } = req.body;
-
+  console.log(req.body);
+  console.log(contextId);
+  console.log(contextType);
+  console.log(title);
+  console.log(adminId);
   if (!contextId || !contextType || !title || !adminId) {
     return res.status(400).json({ error: 'contextId, contextType, title, and adminId are required' });
   }
@@ -503,8 +507,10 @@ router.delete('/admin/quizzes/:id', async (req, res) => {
 router.post('/admin/questions', async (req, res) => {
   const { quizIds, text, options, type, adminId } = req.body;
 
+
+
   if (!quizIds || !text || !type || !adminId) {
-    return res.status(400).json({ error: 'quizIds, text, type, and adminId are required' });
+    return res.status(400).json({ error: 'quizIds, text, type, and adminId are required err ' });
   }
 
   try {
@@ -573,9 +579,12 @@ router.post('/register', async (req, res) => {
 });
 
 router.get('/admin/questions', async (req, res) => {
-  const { adminId } = req.query;
+  const { adminId, quizId } = req.query;
   try {
-    const questions = await Question.find({ admin: adminId });
+    const query = { admin: adminId };
+    if (quizId) query.quizIds = quizId; // Assuming questions store an array of quizIds they belong to
+
+    const questions = await Question.find(query);
     res.json(questions);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch questions' });

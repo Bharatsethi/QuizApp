@@ -1,33 +1,55 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, FlatList, TouchableOpacity, Alert, Modal, Button } from 'react-native';
 import { fetchQuestions, deleteQuestion, unlinkQuestionFromContext, linkQuestionToQuiz } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
+import { NavigationContext } from '../../context/NavigationContext';
+import { UserContext } from '../../context/UserContext';
 import styles from '../General/styles';
 
 const ManageQuestions = ({ route, navigation }) => {
-  const { quizId, contextId, contextType } = route.params;
+  const { quizId } = route.params || {}; // Ensure route is correctly included
   const [questions, setQuestions] = useState([]);
   const [availableQuestions, setAvailableQuestions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const { translations } = useContext(TranslationContext);
+  const { currentQuizId, setCurrentQuizId } = useContext(NavigationContext);
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
-    const fetchData = async () => {
+    setCurrentQuizId(quizId); // Ensure currentQuizId is updated when navigated to this screen
+  }, [quizId, setCurrentQuizId]);
+
+  const fetchData = useCallback(async () => {
+    if (currentQuizId) {
       try {
-        const response = await fetchQuestions(quizId);
-        setQuestions(response.data);
+        const response = await fetchQuestions(user.userId, currentQuizId);
+        if (response.status === 200) {
+          setQuestions(response.data);
+        } else {
+          throw new Error('Failed to fetch questions');
+        }
       } catch (error) {
         Alert.alert(translations.error || 'Error', translations.failedToFetchQuestions || 'Failed to fetch questions');
       }
-    };
+    }
+  }, [currentQuizId, translations, user.userId]);
 
-    fetchData();
-  }, [quizId, translations]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
+  const goBackToManageQuizzes = () => {
+    setCurrentQuizId(null); // Reset currentQuizId when leaving the screen
+    navigation.navigate('ManageQuizzes', { contextId, contextType }); // Pass back the contextId and contextType
+  };
 
   const handleAddQuestion = () => {
-    navigation.navigate('AddQuestion', { quizId });
+    navigation.navigate('AddQuestion', { quizId: currentQuizId });
   };
 
   const handleEditQuestion = (question) => {
@@ -46,7 +68,7 @@ const ManageQuestions = ({ route, navigation }) => {
 
   const handleUnlinkQuestion = async (questionId) => {
     try {
-      await unlinkQuestionFromContext(contextId, questionId, contextType);
+      await unlinkQuestionFromContext(currentQuizId, questionId, 'quiz');
       setQuestions(questions.filter((question) => question._id !== questionId));
       Alert.alert(translations.success || 'Success', translations.questionUnlinkedSuccessfully || 'Question unlinked successfully');
     } catch (error) {
@@ -67,7 +89,7 @@ const ManageQuestions = ({ route, navigation }) => {
 
   const linkSelectedQuestion = async (questionId) => {
     try {
-      await linkQuestionToQuiz(quizId, questionId);
+      await linkQuestionToQuiz(currentQuizId, questionId);
       setQuestions([...questions, availableQuestions.find((q) => q._id === questionId)]);
       Alert.alert(translations.success || 'Success', translations.questionLinkedSuccessfully || 'Question linked successfully');
       setModalVisible(false);
@@ -104,6 +126,13 @@ const ManageQuestions = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={goBackToManageQuizzes}
+      >
+        <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
+        <Text style={styles.backButtonText}>{translations.back} to Manage Quizzes</Text>
+      </TouchableOpacity>
       <TouchableOpacity style={styles.addButton} onPress={handleAddQuestion}>
         <Icon name="plus" size={16} color="#fff" style={styles.buttonIcon} />
         <Text style={styles.buttonText}>{translations.add} {translations.question}</Text>
@@ -120,13 +149,13 @@ const ManageQuestions = ({ route, navigation }) => {
             <Text style={styles.questionText}>{item.text}</Text>
             <View style={styles.iconContainer}>
               <TouchableOpacity onPress={() => handleEditQuestion(item)}>
-                <Icon name="pencil" size={20} color="#000" style={styles.icon} />
+                <Icon name="pencil" size="20" color="#000" style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleDeleteQuestion(item._id)}>
-                <Icon name="trash" size={20} color="#000" style={styles.icon} />
+                <Icon name="trash" size="20" color="#000" style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleUnlinkQuestion(item._id)}>
-                <Icon name="unlink" size={20} color="#000" style={styles.icon} />
+                <Icon name="unlink" size="20" color="#000" style={styles.icon} />
               </TouchableOpacity>
             </View>
           </View>

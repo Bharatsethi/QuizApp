@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { TranslationContext } from '../../context/TranslationContext';
 import Header from '../General/Header';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 import { createAdmin } from '../../services/api'; // Import the function from api.js
 
 const AddAdmin = ({ navigation }) => {

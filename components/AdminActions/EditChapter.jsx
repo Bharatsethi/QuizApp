@@ -5,8 +5,8 @@ import { updateChapter } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
 import AdvancedRTF from '../General/AdvancedRTFold'; // Import the updated AdvancedRTF component
-import styles from '../General/stylesOld';
-import buttonStyles from '../General/buttonStyles';
+import styles from '../General/styles';
+//import buttonStyles from '../General/buttonStyles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import Icon from 'react-native-vector-icons/FontAwesome';

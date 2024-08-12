@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } fro
 import { forgotPassword } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 
 const ForgotPassword = ({ navigation }) => {
   const [email, setEmail] = useState('');

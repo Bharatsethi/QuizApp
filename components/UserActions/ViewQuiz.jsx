@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, ActivityIndic
 import { fetchQuizByLessonId, submitAnswer } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 
 const ViewQuiz = ({ route, navigation }) => {
   const { lessonId } = route.params;

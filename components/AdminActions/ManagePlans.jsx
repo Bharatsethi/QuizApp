@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import { NavigationContext } from '../../context/NavigationContext';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 
 const ManagePlans = ({ navigation }) => {
   const [plans, setPlans] = useState([]);

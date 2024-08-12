@@ -118,6 +118,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
+  buttonText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
+    fontWeight: 'bold',
+  },
   submitButtonText: {
     color: COLORS.white,
     fontSize: FONTS.sizeMedium,

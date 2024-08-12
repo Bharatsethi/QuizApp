@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, Button, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { fetchQuestions, submitAnswer } from '../../services/api';
 import Header from '../General/Header';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
 
 const Quiz = () => {

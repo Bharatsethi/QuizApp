@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { fetchMessageById, updateMessage } from '../../services/api'; // Assuming these functions are defined in your API service
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const EditMessage = ({ route, navigation }) => {

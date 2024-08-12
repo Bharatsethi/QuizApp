@@ -4,7 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { fetchTopics, deleteTopic } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import { NavigationContext } from '../../context/NavigationContext';

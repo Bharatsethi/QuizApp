@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { fetchTranslations, updateTranslations } from '../../services/api';
 import Header from '../General/Header';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -10,7 +10,6 @@ const ManageTranslations = ({ navigation }) => {
   const { translations, setTranslationContext } = useContext(TranslationContext);
   const [translationsState, setTranslationsState] = useState(translations);
   const [loading, setLoading] = useState(false);
-
   useEffect(() => {
     const getTranslations = async () => {
       setLoading(true);

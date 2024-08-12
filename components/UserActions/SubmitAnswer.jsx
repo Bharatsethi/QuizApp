@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { submitAnswer } from '../../services/api';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 
 const SubmitAnswer = ({ route, navigation }) => {
   const { quizId, questionId } = route.params;

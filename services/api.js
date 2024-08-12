@@ -1,6 +1,11 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
 
-const API_URL = 'http://192.168.0.75:3002';
+// Load environment variables from .env file
+dotenv.config();
+
+// Use the API URL from the .env file or default to a specific URL if not set
+const API_URL = process.env.API_URL || 'http://192.168.0.232:3002';
 
 // Create an instance of axios
 const apiClient = axios.create({
@@ -219,10 +224,11 @@ export const forgotPassword = async (emailData) => {
   return apiClient.post('/forgot-password', emailData);
 };
 
-export const fetchQuestions = async (adminId) => {
-  return apiClient.get('/admin/questions', { params: { adminId } });
+export const fetchQuestions = async (adminId, quizId) => {
+  const params = { adminId };
+  if (quizId) params.quizId = quizId;
+  return apiClient.get('/admin/questions', { params });
 };
-
 
 export const createQuestion = async (questionData) => {
   try {

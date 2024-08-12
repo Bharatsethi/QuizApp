@@ -5,13 +5,22 @@ import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MessageContext from '../../context/MessageContext';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
+import axios from 'axios';
+import dotenv from 'dotenv';
 
 const ManageMessages = ({ navigation }) => {
   const [message, setMessage] = useState('');
   const { messages, setMessages } = useContext(MessageContext);
   const { translations } = useContext(TranslationContext);
-  const API_URL = 'http://192.168.0.75:3002';
+  // Load environment variables from .env file
+  dotenv.config();
+  // Use the API URL from the .env file or default to a specific URL if not set
+  const API_URL = process.env.API_URL || 'http://192.168.0.232:3002';
+  // Create an instance of axios
+  const apiClient = axios.create({
+    baseURL: API_URL,
+  });
 
   useEffect(() => {
     fetchMessages();

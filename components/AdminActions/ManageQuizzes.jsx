@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import { NavigationContext } from '../../context/NavigationContext';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
 
 const ManageQuizzes = ({ route, navigation }) => {
   const { contextId, contextType } = route.params;
@@ -55,7 +55,7 @@ const ManageQuizzes = ({ route, navigation }) => {
 
   const handleManageQuestions = (quiz) => {
     setCurrentQuizId(quiz._id);
-    navigation.navigate('ManageQuestions', { quiz });
+    navigation.navigate('ManageQuestions', { quizId: quiz._id, contextType: 'quiz' });
   };
 
   const handleLinkQuiz = async () => {

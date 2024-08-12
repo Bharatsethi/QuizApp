@@ -1,18 +1,21 @@
-import React, { useState, useContext, useRef } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { createQuestion } from '../../services/api';
+import { createQuestion, fetchQuestions } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
+import { NavigationContext } from '../../context/NavigationContext';
 import styles from '../General/styles';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const AddQuestion = ({ route, navigation }) => {
-  const { quizId } = route.params;
+const AddQuestion = ({ navigation }) => {
   const [questionText, setQuestionText] = useState('');
   const [options, setOptions] = useState([{ text: '', isCorrect: false }]);
-  const [questionType, setQuestionType] = useState('single'); // single, multiple, or freeText
+  const [questionType, setQuestionType] = useState('multiple-choice');
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
+  const { currentQuizId } = useContext(NavigationContext);
   const richTextEditor = useRef();
 
   const handleAddOption = () => {
@@ -36,23 +39,30 @@ const AddQuestion = ({ route, navigation }) => {
   };
 
   const handleAddQuestion = async () => {
-    if (!questionText || (questionType !== 'freeText' && options.some(option => option.text === ''))) {
-      Alert.alert(translations.error, 'Please fill all fields');
+    if (!questionText || (questionType === 'multiple-choice' && options.some(option => !option.text))) {
+      Alert.alert(translations.error || 'Error', 'Please fill all fields');
       return;
     }
 
     try {
+      const formattedOptions = options.map(option => ({
+        text: option.text,
+        isCorrect: option.isCorrect
+      }));
+
       const response = await createQuestion({
-        quizId,
-        questionText,
-        options: questionType !== 'freeText' ? options : [],
-        questionType,
+        quizIds: [currentQuizId], // Use currentQuizId from context
+        text: questionText,
+        options: questionType === 'multiple-choice' ? formattedOptions : undefined,
+        type: questionType,
+        adminId: user?.userId,
       });
-      if (response.status === 201) {
+
+      if (response && response.status === 201) {
         Alert.alert('Success', 'Question added successfully');
         navigation.goBack();
       } else {
-        Alert.alert('Error', 'Failed to add question');
+        Alert.alert('Error', 'Unable to get right response');
       }
     } catch (error) {
       console.error('Add question error:', error);
@@ -71,20 +81,14 @@ const AddQuestion = ({ route, navigation }) => {
       <Text style={styles.label}>Question Type:</Text>
       <View style={styles.flexRow}>
         <TouchableOpacity
-          style={questionType === 'single' ? styles.selectedOption : styles.unselectedOption}
-          onPress={() => setQuestionType('single')}
+          style={questionType === 'multiple-choice' ? styles.selectedOption : styles.unselectedOption}
+          onPress={() => setQuestionType('multiple-choice')}
         >
-          <Text style={styles.optionText}>Single Answer</Text>
+          <Text style={styles.optionText}>Multiple Choice</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={questionType === 'multiple' ? styles.selectedOption : styles.unselectedOption}
-          onPress={() => setQuestionType('multiple')}
-        >
-          <Text style={styles.optionText}>Multiple Answers</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={questionType === 'freeText' ? styles.selectedOption : styles.unselectedOption}
-          onPress={() => setQuestionType('freeText')}
+          style={questionType === 'free-text' ? styles.selectedOption : styles.unselectedOption}
+          onPress={() => setQuestionType('free-text')}
         >
           <Text style={styles.optionText}>Free Text</Text>
         </TouchableOpacity>
@@ -93,9 +97,9 @@ const AddQuestion = ({ route, navigation }) => {
         style={styles.input}
         value={questionText}
         onChangeText={setQuestionText}
-        placeholder={`Enter ${translations.question.toLowerCase()} text`}
+        placeholder={`Enter ${translations.question?.toLowerCase() || 'question'} text`}
       />
-      {questionType !== 'freeText' && (
+      {questionType === 'multiple-choice' && (
         <>
           {options.map((option, index) => (
             <View key={index} style={styles.optionContainer}>
@@ -104,7 +108,7 @@ const AddQuestion = ({ route, navigation }) => {
                 content={option.text}
                 onContentChange={(text) => handleOptionChange(index, text)}
               />
-              <View style={styles.flexRow}>
+              <View style={styles.optionButtonsContainer}>
                 <TouchableOpacity
                   style={option.isCorrect ? styles.correctButton : styles.incorrectButton}
                   onPress={() => handleOptionCorrectChange(index, !option.isCorrect)}
@@ -124,7 +128,7 @@ const AddQuestion = ({ route, navigation }) => {
           </TouchableOpacity>
         </>
       )}
-      <View style={styles.buttonContainer}>
+      <View style={styles.superbuttonContainer}>
         <TouchableOpacity style={styles.primaryButton} onPress={handleAddQuestion}>
           <Text style={styles.buttonText}>Add {translations.question}</Text>
         </TouchableOpacity>
@@ -135,6 +139,5 @@ const AddQuestion = ({ route, navigation }) => {
     </ScrollView>
   );
 };
-
 
 export default AddQuestion;

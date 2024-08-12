@@ -3,7 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } fro
 import axios from 'axios';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
-import styles from '../General/stylesOld';
+import styles from '../General/styles';
+import axios from 'axios';
+import dotenv from 'dotenv';
 
 const UserProfile = ({ route }) => {
   const { userId } = route.params;
@@ -13,7 +15,15 @@ const UserProfile = ({ route }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const API_URL = 'http://137.154.208.211:3002';
+  // Load environment variables from .env file
+  dotenv.config();
+  // Use the API URL from the .env file or default to a specific URL if not set
+  const API_URL = process.env.API_URL || 'http://192.168.0.232:3002';
+  // Create an instance of axios
+  const apiClient = axios.create({
+    baseURL: API_URL,
+  });
+
 
   useEffect(() => {
     const fetchUserProfile = async () => {
