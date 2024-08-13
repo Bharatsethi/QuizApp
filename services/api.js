@@ -1,11 +1,12 @@
 import axios from 'axios';
-import dotenv from 'dotenv';
+import { API_URL } from '@env';
+//import dotenv from 'dotenv';
 
 // Load environment variables from .env file
-dotenv.config();
+// dotenv.config();
 
 // Use the API URL from the .env file or default to a specific URL if not set
-const API_URL = process.env.API_URL || 'http://192.168.0.232:3002';
+// const API_URL = process.env.API_URL || 'http://192.168.0.232:3002';
 
 // Create an instance of axios
 const apiClient = axios.create({
