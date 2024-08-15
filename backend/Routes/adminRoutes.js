@@ -477,6 +477,39 @@ router.post('/admin/context/:contextId/quizzes/:quizId', async (req, res) => {
   }
 });
 
+// Generalized route to link or unlink a quiz or question to a context
+router.post('/admin/context/:contextType/:contextId/link', async (req, res) => {
+  const { contextType, contextId } = req.params;
+  const { itemId, itemType, action } = req.body; // Link or unlink, itemType can be 'quiz' or 'question'
+
+  try {
+    const modelMap = {
+      plan: Plan,
+      chapter: Chapter,
+      lesson: Lesson,
+      topic: Topic
+    };
+
+    if (!modelMap[contextType]) {
+      return res.status(400).json({ error: 'Invalid context type' });
+    }
+
+    const context = await modelMap[contextType].findById(contextId);
+    if (!context) {
+      return res.status(404).json({ error: `${contextType} not found` });
+    }
+
+    const updateField = itemType === 'quiz' ? 'quizzes' : 'questions';
+    const update = action === 'link' ? { $push: { [updateField]: itemId } } : { $pull: { [updateField]: itemId } };
+    
+    await modelMap[contextType].findByIdAndUpdate(contextId, update, { new: true });
+    res.json({ message: `${itemType} successfully ${action}ed.` });
+  } catch (error) {
+    res.status(500).json({ error: 'Database operation failed' });
+  }
+});
+
+
 router.put('/admin/quizzes/:id', async (req, res) => {
   const { id } = req.params;
   const { title, questions, adminId } = req.body;

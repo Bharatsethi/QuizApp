@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, Modal, Button } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Modal, Button } from 'react-native';
 import { fetchQuizzes, deleteQuiz, linkQuizToContext } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -18,21 +18,29 @@ const ManageQuizzes = ({ route, navigation }) => {
   const { user } = useContext(UserContext);
   const { setCurrentQuizId } = useContext(NavigationContext);
 
-  const fetchData = async () => {
-    try {
-      const response = await fetchQuizzes(contextId);
-      setQuizzes(response);
-    } catch (error) {
-      console.error('Failed to fetch quizzes:', error);
-      Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes. Please try again later.');
-    }
-  };
+  useEffect(() => {
+    fetchData();
+  }, [contextId]);
 
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [contextId, translations])
+    }, [contextId])
   );
+
+  const fetchData = async () => {
+    try {
+      const response = await fetchQuizzes(contextId);
+      if (response.status === 200) {
+        setQuizzes(response.data);
+      } else {
+        Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
+      }
+    } catch (error) {
+      console.error('Failed to fetch quizzes:', error);
+      Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
+    }
+  };
 
   const handleAddQuiz = () => {
     navigation.navigate('AddQuiz', { contextId, contextType });
@@ -44,12 +52,16 @@ const ManageQuizzes = ({ route, navigation }) => {
 
   const handleDeleteQuiz = async (quizId) => {
     try {
-      await deleteQuiz(quizId, user.userId);
-      setQuizzes(quizzes.filter(quiz => quiz._id !== quizId));
-      Alert.alert(translations.success || 'Success', `${translations.quiz} ${translations.deletedSuccessfully || 'deleted successfully'}`);
+      const response = await deleteQuiz(quizId, user.userId);
+      if (response.status === 204) {
+        setQuizzes(quizzes.filter(quiz => quiz._id !== quizId));
+        Alert.alert(translations.success || 'Success', translations.quizDeletedSuccessfully || 'Quiz deleted successfully');
+      } else {
+        throw new Error('Failed to delete quiz');
+      }
     } catch (error) {
       console.error('Failed to delete quiz:', error);
-      Alert.alert(translations.error || 'Error', `${translations.failedToDelete || 'Failed to delete'} ${translations.quiz.toLowerCase()}`);
+      Alert.alert(translations.error || 'Error', translations.failedToDeleteQuiz || 'Failed to delete quiz');
     }
   };
 
@@ -60,9 +72,9 @@ const ManageQuizzes = ({ route, navigation }) => {
 
   const handleLinkQuiz = async () => {
     try {
-      const response = await fetchQuizzes();
-      const availableQuizzes = response.filter((quiz) => !quizzes.some((q) => q._id === quiz._id));
-      setAvailableQuizzes(availableQuizzes);
+      const response = await fetchQuizzes(); // Fetch all quizzes to filter out already linked ones
+      const nonLinkedQuizzes = response.data.filter(quiz => !quizzes.some(q => q._id === quiz._id));
+      setAvailableQuizzes(nonLinkedQuizzes);
       setModalVisible(true);
     } catch (error) {
       Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
@@ -71,11 +83,16 @@ const ManageQuizzes = ({ route, navigation }) => {
 
   const linkSelectedQuiz = async (quizId) => {
     try {
-      await linkQuizToContext(contextId, quizId, user.userId);
-      setQuizzes([...quizzes, availableQuizzes.find((q) => q._id === quizId)]);
-      Alert.alert(translations.success || 'Success', translations.quizLinkedSuccessfully || 'Quiz linked successfully');
+      const response = await linkQuizToContext(contextId, quizId, user.userId);
+      if (response.status === 200) {
+        setQuizzes([...quizzes, availableQuizzes.find(q => q._id === quizId)]);
+        Alert.alert(translations.success || 'Success', translations.quizLinkedSuccessfully || 'Quiz linked successfully');
+      } else {
+        throw new Error('Failed to link quiz');
+      }
       setModalVisible(false);
     } catch (error) {
+      console.error('Failed to link quiz:', error);
       Alert.alert(translations.error || 'Error', translations.failedToLinkQuiz || 'Failed to link quiz');
     }
   };
@@ -115,14 +132,14 @@ const ManageQuizzes = ({ route, navigation }) => {
         <Icon name="arrow-left" size={16} color="#fff" />
         <Text style={styles.backButtonText}>{translations.backToManage || 'Back to Manage'}</Text>
       </TouchableOpacity>
-      <Text style={styles.sectionTitle}>{translations.manage} {translations.quizzes} {translations.for} {contextType}</Text>
+      <Text style={styles.sectionTitle}>{translations.manage || 'Manage'} {translations.quizzes || 'Quizzes'} {translations.for || 'for'} {contextType}</Text>
       <TouchableOpacity style={styles.addButton} onPress={handleAddQuiz}>
-        <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
+        <Icon name="plus" size={16} color="#fff" />
         <Text style={styles.addButtonText}>{translations.addQuiz || 'Add Quiz'}</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.addButton} onPress={handleLinkQuiz}>
-        <Icon name="link" size={16} color="#fff" style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>{translations.link} {translations.quiz}</Text>
+        <Icon name="link" size={16} color="#fff" />
+        <Text style={styles.addButtonText}>{translations.link || 'Link'} {translations.quiz || 'Quiz'}</Text>
       </TouchableOpacity>
       {quizzes.length === 0 ? (
         <Text style={styles.noQuizzesText}>{translations.noQuizzesAvailable || 'No quizzes available for this plan.'}</Text>
@@ -135,13 +152,13 @@ const ManageQuizzes = ({ route, navigation }) => {
               <Text style={styles.quizText}>{item.title}</Text>
               <View style={styles.iconContainer}>
                 <TouchableOpacity onPress={() => handleEditQuiz(item)}>
-                  <Icon name="pencil" size={20} color="#000" style={styles.icon} />
+                  <Icon name="pencil" size={20} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleDeleteQuiz(item._id)}>
-                  <Icon name="trash" size={20} color="#000" style={styles.icon} />
+                  <Icon name="trash" size={20} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleManageQuestions(item)}>
-                  <Icon name="book" size={20} color="#000" style={styles.icon} />
+                  <Icon name="book" size={20} color="#000" />
                 </TouchableOpacity>
               </View>
             </View>

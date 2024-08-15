@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
+    marginLeft: 10,
   },
   submitButtonText: {
     color: COLORS.white,
@@ -134,13 +135,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addButton: {
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.primary,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+    flex: 1,
+    marginHorizontal: 5, // Adding margin between the buttons
   },
   addButtonText: {
     color: COLORS.white,
@@ -172,6 +175,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#fff',
     marginLeft: 5,
+    fontSize: FONTS.sizeMedium,
   },
   tileButton: {
     backgroundColor: COLORS.primary,
@@ -202,11 +206,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    padding: 20,
+    alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: FONTS.sizeLarge,
+    fontWeight: 'bold',
     marginBottom: 20,
+  },
+  modalItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray,
+    width: '100%',
   },
   userItem: {
     padding: 10,
@@ -248,8 +266,8 @@ const styles = StyleSheet.create({
   shadow: {
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
   },
   input: {
@@ -264,14 +282,19 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 8,
-    padding: 16,
-    marginVertical: 8,
+    padding: 20,
+    marginVertical: 10,
     marginHorizontal: 16,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   cardContent: {
     flexDirection: 'row',
@@ -324,11 +347,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     padding: 15,
     borderRadius: 8,
-    marginVertical: 5,
+    marginVertical: 10,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -362,9 +385,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   questionText: {
+    flex: 1,
     fontSize: FONTS.sizeMedium,
     color: COLORS.textPrimary,
-    marginBottom: 10,
   },
   icon: {
     marginLeft: 16,
@@ -372,6 +395,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: FONTS.sizeMedium,
     fontWeight: 'bold',
+    color: COLORS.textPrimary,
     marginBottom: 5,
     marginLeft: 20,
   },
@@ -419,6 +443,9 @@ const styles = StyleSheet.create({
   answerText: {
     fontSize: FONTS.sizeMedium,
     color: COLORS.textPrimary,
+  },
+  inputGroup: {
+    marginBottom: 15,
   },
   title: {
     fontSize: FONTS.sizeLarge,
@@ -520,7 +547,9 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
+  
   plansList: {
     paddingHorizontal: 20,
   },
@@ -528,11 +557,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     padding: 15,
     borderRadius: 8,
-    marginVertical: 5,
+    marginVertical: 10,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowRadius: 4,
     elevation: 2,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -590,6 +619,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
 
 export default styles;
 

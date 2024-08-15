@@ -3,7 +3,7 @@ import { View, Text, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { TranslationContext } from '../../context/TranslationContext';
 import Header from '../General/Header';
 import styles from '../General/styles';
-import { createAdmin } from '../../services/api'; // Import the function from api.js
+import { createAdmin } from '../../services/api';
 
 const AddAdmin = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -27,14 +27,14 @@ const AddAdmin = ({ navigation }) => {
 
     try {
       await createAdmin({ username, email, password });
-      Alert.alert(translations.success, `${translations.admin} created successfully`, [
+      Alert.alert(translations.success, `${translations.admin} ${translations.createdSuccessfully || 'created successfully'}`, [
         {
           text: 'OK',
           onPress: () => navigation.goBack(),
         },
       ]);
     } catch (error) {
-      Alert.alert(translations.error, `Error creating ${translations.admin.toLowerCase()} user`);
+      Alert.alert(translations.error, `Error creating ${translations.admin?.toLowerCase() || 'admin'} user`);
     }
   };
 
@@ -45,35 +45,48 @@ const AddAdmin = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <View style={styles.card}>
-        <Text style={styles.label}>{translations.username || 'Username'}:</Text>
-        <TextInput
-          style={styles.input}
-          value={username}
-          onChangeText={setUsername}
-          placeholder={`Enter ${translations.username?.toLowerCase() || 'username'}`}
-        />
-        <Text style={styles.label}>{translations.email || 'Email'}:</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          placeholder={`Enter ${translations.email?.toLowerCase() || 'email'}`}
-          keyboardType="email-address"
-        />
-        <Text style={styles.label}>{translations.password || 'Password'}:</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          placeholder={`Enter ${translations.password?.toLowerCase() || 'password'}`}
-          secureTextEntry
-        />
+      <View style={[styles.card, styles.shadow]}>
+        <Text style={styles.title}>{translations.addAdmin || 'Add Admin'}</Text>
+        
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>{translations.username || 'Username'}:</Text>
+          <TextInput
+            style={styles.input}
+            value={username}
+            onChangeText={setUsername}
+            placeholder={translations.enterUsername || 'Enter username'}
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>{translations.email || 'Email'}:</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder={translations.enterEmail || 'Enter email'}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>{translations.password || 'Password'}:</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder={translations.enterPassword || 'Enter password'}
+            secureTextEntry
+          />
+        </View>
+
         <View style={styles.superbuttonContainer}>
-          <TouchableOpacity style={styles.primaryButton} onPress={handleCreateAdmin}>
+          <TouchableOpacity style={[styles.primaryButton, styles.shadow]} onPress={handleCreateAdmin}>
             <Text style={styles.buttonText}>{translations.create || 'Create'} {translations.admin || 'Admin'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+          <TouchableOpacity style={[styles.cancelButton, styles.shadow]} onPress={handleCancel}>
             <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
           </TouchableOpacity>
         </View>

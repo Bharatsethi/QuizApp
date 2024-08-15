@@ -45,9 +45,9 @@ const EditChapter = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <TouchableOpacity style={buttonStyles.backButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={buttonStyles.backButtonText}>{translations.backToManage || 'Back to Manage'} {translations.chapter || 'Chapter'}</Text>
+        <Text style={styles.backButtonText}>{translations.backToManage || 'Back to Manage'} {translations.chapter || 'Chapter'}</Text>
       </TouchableOpacity>
       <ScrollView style={{ paddingBottom: 100 }}>
         <Text style={styles.title}>{translations.edit || 'Edit'} {translations.chapter || 'Chapter'}</Text>
@@ -79,18 +79,18 @@ const EditChapter = ({ route, navigation }) => {
         )}
         
         <TouchableOpacity 
-          style={buttonStyles.toggleEditorButton}
+          style={styles.toggleEditorButton}
           onPress={() => setUseAdvancedEditor(!useAdvancedEditor)}
         >
-          <Text style={buttonStyles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
+          <Text style={styles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
         </TouchableOpacity>
         </ScrollView>
-        <View style={buttonStyles.buttonContainer}>
-          <TouchableOpacity style={buttonStyles.primaryButton} onPress={handleSaveChanges}>
-            <Text style={buttonStyles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleSaveChanges}>
+            <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={buttonStyles.cancelButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
-            <Text style={buttonStyles.buttonText}>{translations.cancel || 'Cancel'}</Text>
+          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
+            <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
           </TouchableOpacity>
         </View>
       

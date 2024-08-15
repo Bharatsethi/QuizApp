@@ -6,10 +6,10 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 require('dotenv').config();
 
-const userRoutes = require('./Routes/userRoutes');
-const healthRoutes = require('./Routes/healthRoutes');
-const adminRoutes = require('./Routes/adminRoutes');
-const superUserRoutes = require('./Routes/superUserRoutes');
+const userRoutes = require('./routes/userRoutes');
+const healthRoutes = require('./routes/healthRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const superUserRoutes = require('./routes/superUserRoutes');
 
 const User = require('./models/User');
 const Translation = require('./models/Translation');

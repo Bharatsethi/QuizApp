@@ -11,6 +11,7 @@ export const TranslationProvider = ({ children }) => {
     topic: 'Topic',
     question: 'Question',
     answer: 'Answer',
+    quiz: 'Quiz',
     admin: 'Admin',
     username: 'Username',
     email: 'Email',

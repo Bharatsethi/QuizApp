@@ -46,15 +46,15 @@ const AddLesson = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <TouchableOpacity style={buttonStyles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={buttonStyles.backButtonText}>{translations.backToManage || 'Back to Manage'} {translations.lessons || 'Lessons'}</Text>
+        <Text style={styles.backButtonText}>{translations.backToManage || 'Back to Manage'} {translations.lessons || 'Lessons'}</Text>
       </TouchableOpacity>
       <ScrollView style={{ paddingBottom: 100 }}>
         <Text style={styles.title}>{translations.add || 'Add'} {translations.lesson || 'Lesson'}</Text>
-        <TouchableOpacity style={buttonStyles.addExistingButton} onPress={handleNavigateToExistingLessons}>
+        <TouchableOpacity style={styles.addExistingButton} onPress={handleNavigateToExistingLessons}>
           <Icon name="search" size={16} color="#fff" />
-          <Text style={buttonStyles.buttonText}>{translations.addExisting || 'Add Existing'} {translations.lesson}</Text>
+          <Text style={styles.buttonText}>{translations.addExisting || 'Add Existing'} {translations.lesson}</Text>
         </TouchableOpacity>
         <TextInput
           style={styles.input}
@@ -73,18 +73,18 @@ const AddLesson = ({ navigation, route }) => {
           />
         )}
         <TouchableOpacity 
-          style={buttonStyles.toggleEditorButton}
+          style={styles.toggleEditorButton}
           onPress={() => setUseAdvancedEditor(!useAdvancedEditor)}
         >
-          <Text style={buttonStyles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
+          <Text style={styles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
         </TouchableOpacity>
       </ScrollView>
-      <View style={buttonStyles.superbuttonContainer}>
-        <TouchableOpacity style={buttonStyles.primaryButton} onPress={handleCreateLesson}>
-          <Text style={buttonStyles.buttonText}>{translations.create || 'Create'} {translations.lesson || 'Lesson'}</Text>
+      <View style={styles.superbuttonContainer}>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleCreateLesson}>
+          <Text style={styles.buttonText}>{translations.create || 'Create'} {translations.lesson || 'Lesson'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={buttonStyles.cancelButton} onPress={() => navigation.goBack()}>
-          <Text style={buttonStyles.buttonText}>{translations.cancel || 'Cancel'}</Text>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
         </TouchableOpacity>
       </View>
     </View>

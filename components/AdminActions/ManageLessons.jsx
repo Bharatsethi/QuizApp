@@ -7,7 +7,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
-import { NavigationContext } from '../../context/NavigationContext'; // Import NavigationContext
+import { NavigationContext } from '../../context/NavigationContext';
+import { COLORS, FONTS } from '../General/colors';
 
 const ManageLessons = ({ route, navigation }) => {
   const { chapter } = route.params;
@@ -28,7 +29,7 @@ const ManageLessons = ({ route, navigation }) => {
       setLessons(response.data);
     } catch (error) {
       console.error('Failed to fetch lessons:', error);
-      Alert.alert(translations.error || 'Error', translations.failedToFetchLessons || 'Failed to fetch lessons. Please try again later.');
+      Alert.alert(translations.error, translations.failedToFetchLessons || 'Failed to fetch lessons. Please try again later.');
     }
   };
 
@@ -48,20 +49,20 @@ const ManageLessons = ({ route, navigation }) => {
 
   const handleDeleteLesson = async (lessonId, action) => {
     try {
-      await deleteLesson(lessonId, action, currentChapterId, user.userId); // Pass adminId from user context
+      await deleteLesson(lessonId, action, currentChapterId, user.userId);
       setLessons(lessons.filter(lesson => lesson._id !== lessonId));
       const successMessage = action === 'delete' ? translations.deletedSuccessfully : translations.unlinkedSuccessfully;
-      Alert.alert(translations.success || 'Success', `${translations.lesson} ${successMessage || 'action completed successfully'}`);
+      Alert.alert(translations.success, `${translations.lesson} ${successMessage}`);
     } catch (error) {
       console.error('Failed to process lesson:', error);
       const errorMessage = action === 'delete' ? translations.failedToDelete : translations.failedToUnlink;
-      Alert.alert(translations.error || 'Error', `${errorMessage || 'Failed to process'} ${translations.lesson.toLowerCase()}`);
+      Alert.alert(translations.error, `${errorMessage} ${translations.lesson.toLowerCase()}`);
     }
   };
 
   const confirmDeleteOrUnlink = (lessonId) => {
     Alert.alert(
-      translations.confirm || 'Confirm',
+      translations.confirm,
       translations.confirmDeleteOrUnlink || 'Do you want to delete the lesson or just unlink it from the chapter?',
       [
         {
@@ -94,36 +95,39 @@ const ManageLessons = ({ route, navigation }) => {
     <View style={styles.container}>
       <Header />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManageChapters', { plan: { _id: chapter.planId } })}>
-        <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>{translations.backToChapters || 'Back to Chapters'}</Text>
+        <Icon name="arrow-left" size={16} color={COLORS.white} />
+        <Text style={styles.backButtonText}>Back to {translations.chapter}</Text>
       </TouchableOpacity>
       <Text style={styles.sectionTitle}>{translations.manage} {translations.lessons} {translations.for} {chapter.title}</Text>
-      <TouchableOpacity style={styles.addButton} onPress={handleAddLesson}>
-        <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>{translations.add} {translations.lesson}</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={[styles.addButton, styles.shadow]} onPress={handleAddLesson}>
+          <Icon name="plus" size={16} color={COLORS.white} />
+          <Text style={styles.addButtonText}>{translations.add} {translations.lesson}</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={lessons}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View style={styles.planItem}>
-            <Text style={styles.planText}>{item.title}</Text>
+          <View style={[styles.lessonItem, styles.shadow]}>
+            <Text style={styles.lessonText}>{item.title}</Text>
             <View style={styles.iconContainer}>
               <TouchableOpacity onPress={() => handleEditLesson(item)}>
-                <Icon name="pencil" size={20} color="#000" style={styles.icon} />
+                <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
-                <Icon name="trash" size={20} color="#000" style={styles.icon} />
+                <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageTopics(item)}>
-                <Icon name="book" size={20} color="#000" style={styles.icon} />
+                <Icon name="book" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
-                <Icon name="question-circle" size={20} color="#000" style={styles.icon} />
+                <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
             </View>
           </View>
         )}
+        contentContainerStyle={styles.lessonsList}
       />
     </View>
   );

@@ -8,6 +8,7 @@ import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import { NavigationContext } from '../../context/NavigationContext';
 import styles from '../General/styles';
+import { COLORS, FONTS } from '../General/colors';
 
 const ManageChapters = ({ route, navigation }) => {
   const { plan } = route.params;
@@ -28,7 +29,7 @@ const ManageChapters = ({ route, navigation }) => {
       setChapters(response.data);
     } catch (error) {
       console.error('Failed to fetch chapters:', error);
-      Alert.alert(translations.error || 'Error', translations.failedToFetchChapters || 'Failed to fetch chapters. Please try again later.');
+      Alert.alert(translations.error, translations.failedToFetchChapters || 'Failed to fetch chapters. Please try again later.');
     }
   };
 
@@ -50,16 +51,16 @@ const ManageChapters = ({ route, navigation }) => {
     try {
       await deleteChapter(chapterId, action, currentPlanId, user.userId);
       setChapters(chapters.filter(chapter => chapter._id !== chapterId));
-      Alert.alert(translations.success || 'Success', `${translations.chapter} ${action === 'delete' ? translations.deletedSuccessfully : translations.unlinkedSuccessfully}`);
+      Alert.alert(translations.success, `${translations.chapter} ${action === 'delete' ? translations.deletedSuccessfully : translations.unlinkedSuccessfully}`);
     } catch (error) {
       console.error(`Failed to ${action} chapter:`, error);
-      Alert.alert(translations.error || 'Error', `${action === 'delete' ? translations.failedToDelete : translations.failedToUnlink} ${translations.chapter.toLowerCase()}`);
+      Alert.alert(translations.error, `${action === 'delete' ? translations.failedToDelete : translations.failedToUnlink} ${translations.chapter.toLowerCase()}`);
     }
   };
 
   const confirmDeleteOrUnlink = (chapterId) => {
     Alert.alert(
-      translations.confirm || 'Confirm',
+      translations.confirm,
       translations.confirmDeleteOrUnlink || 'Do you want to delete the chapter or just unlink it from the plan?',
       [
         {
@@ -93,32 +94,34 @@ const ManageChapters = ({ route, navigation }) => {
     <View style={styles.container}>
       <Header />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManagePlans')}>
-        <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>{translations.backToPlans || 'Back to Plans'}</Text>
+        <Icon name="arrow-left" size={16} color={COLORS.white} />
+        <Text style={styles.backButtonText}>Back to {translations.plan}</Text>
       </TouchableOpacity>
       <Text style={styles.sectionTitle}>{translations.manage} {translations.chapters} {translations.for} {plan.title}</Text>
-      <TouchableOpacity style={styles.addButton} onPress={handleAddChapter}>
-        <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>{translations.add} {translations.chapter}</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={[styles.addButton, styles.shadow]} onPress={handleAddChapter}>
+          <Icon name="plus" size={16} color={COLORS.white} />
+          <Text style={styles.addButtonText}>{translations.add} {translations.chapter}</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={chapters}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View style={styles.chapterItem}>
+          <View style={[styles.chapterItem, styles.shadow]}>
             <Text style={styles.chapterText}>{item.title}</Text>
             <View style={styles.iconContainer}>
               <TouchableOpacity onPress={() => handleEditChapter(item)}>
-                <Icon name="pencil" size={20} color="#000" style={styles.icon} />
+                <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
-                <Icon name="trash" size={20} color="#000" style={styles.icon} />
+                <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageLessons(item)}>
-                <Icon name="book" size={20} color="#000" style={styles.icon} />
+                <Icon name="book" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
-                <Icon name="question-circle" size={20} color="#000" style={styles.icon} />
+                <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
             </View>
           </View>

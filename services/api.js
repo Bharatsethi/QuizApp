@@ -274,6 +274,16 @@ export const unlinkQuestionFromContext = async (contextId, questionId, contextTy
   return apiClient.delete(`/admin/${contextType}/${contextId}/questions/${questionId}`);
 };
 
+// Function to link or unlink quizzes/questions to/from contexts
+export const modifyLink = async (contextType, contextId, itemId, itemType, action) => {
+  return apiClient.post(`/admin/context/${contextType}/${contextId}/link`, {
+    itemId,
+    itemType,
+    action // 'link' or 'unlink'
+  });
+};
+
+
 export const linkQuestionToQuiz = async (quizId, questionId, adminId) => {
   try {
     const response = await apiClient.post(`/admin/quizzes/${quizId}/questions/${questionId}`, { adminId });
@@ -298,7 +308,7 @@ export const fetchQuizzes = async (contextId) => {
     const response = await apiClient.get('/quizzes', {
       params: { contextId },
     });
-    return response.data;
+    return response;
   } catch (error) {
     throw error;
   }
@@ -307,7 +317,7 @@ export const fetchQuizzes = async (contextId) => {
 export const createQuiz = async (quizData) => {
   try {
     const response = await apiClient.post('/admin/quizzes', quizData);
-    return response.data;
+    return response;
   } catch (error) {
     console.error('Failed to create quiz:', error.response ? error.response.data : error.message);
     throw error;

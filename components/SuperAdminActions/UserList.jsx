@@ -1,4 +1,3 @@
-// components/SuperAdminActions/UserList.jsx
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, Dimensions, TextInput } from 'react-native';
 import { fetchUsers, deleteUser } from '../../services/api';
@@ -6,6 +5,7 @@ import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TranslationContext } from '../../context/TranslationContext';
 import styles from '../General/styles';
+import { UserContext } from '../../context/UserContext';
 
 const UserList = ({ navigation }) => {
   const [users, setUsers] = useState([]);
@@ -13,6 +13,7 @@ const UserList = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
   const [orientation, setOrientation] = useState('PORTRAIT');
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext); // Assuming you have a UserContext to track the current user's role
 
   const t = {
     ...translations,
@@ -20,6 +21,8 @@ const UserList = ({ navigation }) => {
     error: translations.error || 'Error',
     failedToFetchUsers: translations.failedToFetchUsers || 'Failed to fetch users',
     addAdmin: translations.addAdmin || 'Add Admin',
+    manageTranslations: translations.manageTranslations || 'Manage Translations',
+    manageMessages: translations.manageMessages || 'Manage Messages',
     logout: translations.logout || 'Logout',
     username: translations.username || 'Username',
     email: translations.email || 'Email',
@@ -97,19 +100,31 @@ const UserList = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      
       <View style={styles.headerContainer}>
-      
         <TouchableOpacity style={styles.addButton} onPress={handleAddAdmin}>
           <Icon name="plus" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.addButtonText}>{t.addAdmin}</Text>
         </TouchableOpacity>
+        
+        {user.role === 'superadmin' && (
+          <>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleManageTranslations}>
+              <Icon name="language" size={16} color="#fff" style={styles.buttonIcon} />
+              <Text style={styles.addButtonText}>{t.manageTranslations}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleManageMessages}>
+              <Icon name="envelope" size={16} color="#fff" style={styles.buttonIcon} />
+              <Text style={styles.addButtonText}>{t.manageMessages}</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Icon name="sign-out" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.logoutButtonText}>{t.logout}</Text>
         </TouchableOpacity>
-        
       </View>
+      
       <TextInput
         style={styles.searchInput}
         value={searchText}

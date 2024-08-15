@@ -9,9 +9,14 @@ import Login from './components/UserActions/Login';
 import Register from './components/UserActions/Register';
 import ForgotPassword from './components/UserActions/ForgotPassword';
 import { Text } from 'react-native'; // Import Text for Suspense fallback
-import { registerLicense } from '@syncfusion/ej2-base';
+//import { registerLicense } from '@syncfusion/ej2-base';
+
+//LogBox.ignoreLogs(['window.addEventListener']); // Ignore this specific warning
 
 const Stack = createStackNavigator();
+
+// Register the license key at the start of your application
+//registerLicense('Ngo9BigBOggjHTQxAR8/V1NCaF5cXmZCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdnWXdfdHRdQmVYWUJ+Vks=');
 
 const screenOptions = {
   headerShown: false,
@@ -45,9 +50,7 @@ const AdminScreens = [
   { name: 'ManageTopics', component: React.lazy(() => import('./components/AdminActions/ManageTopics')) },
   { name: 'ManageQuizzes', component: React.lazy(() => import('./components/AdminActions/ManageQuizzes')) },
   { name: 'ManageQuestions', component: React.lazy(() => import('./components/AdminActions/ManageQuestions')) },
-  { name: 'ManageTranslations', component: React.lazy(() => import('./components/AdminActions/ManageTranslations')) },
-  { name: 'ManageMessages', component: React.lazy(() => import('./components/AdminActions/ManageMessages')) },
-
+  
   { name: 'EditChapter', component: React.lazy(() => import('./components/AdminActions/EditChapter')) },
   { name: 'EditLesson', component: React.lazy(() => import('./components/AdminActions/EditLesson')) },
   { name: 'EditTopic', component: React.lazy(() => import('./components/AdminActions/EditTopic')) },
@@ -61,6 +64,8 @@ const SuperAdminScreens = [
   { name: 'UserList', component: React.lazy(() => import('./components/SuperAdminActions/UserList')) },
   { name: 'EditUser', component: React.lazy(() => import('./components/SuperAdminActions/EditUser')) },
   { name: 'AddAdmin', component: React.lazy(() => import('./components/SuperAdminActions/AddAdmin')) },
+  { name: 'ManageTranslations', component: React.lazy(() => import('./components/SuperAdminActions/ManageTranslations')) },
+  { name: 'ManageMessages', component: React.lazy(() => import('./components/SuperAdminActions/ManageMessages')) },
 ];
 
 const UserScreens = [
@@ -76,7 +81,8 @@ const UserScreens = [
 
 const MainApp = () => {
   const { user } = React.useContext(UserContext);
-  console.log('User in App:', user); // Debug log
+  console.log('User in App:', user);
+
   const renderScreens = (screens) =>
     screens.map((screen) => <Stack.Screen key={screen.name} name={screen.name} component={screen.component} />);
 

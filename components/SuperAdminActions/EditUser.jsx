@@ -3,7 +3,7 @@ import { View, Text, TextInput, Alert, TouchableOpacity } from 'react-native';
 import { TranslationContext } from '../../context/TranslationContext';
 import Header from '../General/Header';
 import styles from '../General/styles';
-import { updateUser } from '../../services/api'; // Import the function from api.js
+import { updateUser } from '../../services/api';
 
 const EditUser = ({ route, navigation }) => {
   const { user } = route.params;
@@ -36,35 +36,48 @@ const EditUser = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <View style={styles.form}>
-        <Text style={styles.label}>{translations.username || 'Username'}:</Text>
-        <TextInput 
-          style={styles.input} 
-          value={username} 
-          onChangeText={setUsername} 
-          placeholder={translations.enterUsername || 'Enter username'}
-        />
-        <Text style={styles.label}>{translations.email || 'Email'}:</Text>
-        <TextInput 
-          style={styles.input} 
-          value={email} 
-          onChangeText={setEmail} 
-          placeholder={translations.enterEmail || 'Enter email'}
-          keyboardType="email-address"
-        />
-        <Text style={styles.label}>{`${translations.password || 'Password'} (${translations.optional || 'Optional'}):`}</Text>
-        <TextInput 
-          style={styles.input} 
-          value={password} 
-          onChangeText={setPassword} 
-          placeholder={translations.enterPassword || 'Enter password'}
-          secureTextEntry
-        />
+      <View style={[styles.card, styles.shadow]}>
+        <Text style={styles.title}>{translations.edit || 'Edit'} {translations.user || 'User'}</Text>
+        
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>{translations.username || 'Username'}:</Text>
+          <TextInput 
+            style={styles.input} 
+            value={username} 
+            onChangeText={setUsername} 
+            placeholder={translations.enterUsername || 'Enter username'}
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>{translations.email || 'Email'}:</Text>
+          <TextInput 
+            style={styles.input} 
+            value={email} 
+            onChangeText={setEmail} 
+            placeholder={translations.enterEmail || 'Enter email'}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>{`${translations.password || 'Password'} (${translations.optional || 'Optional'}):`}</Text>
+          <TextInput 
+            style={styles.input} 
+            value={password} 
+            onChangeText={setPassword} 
+            placeholder={translations.enterPassword || 'Enter password'}
+            secureTextEntry
+          />
+        </View>
+
         <View style={styles.superbuttonContainer}>
-          <TouchableOpacity style={styles.primaryButton} onPress={handleSave}>
+          <TouchableOpacity style={[styles.primaryButton, styles.shadow]} onPress={handleSave}>
             <Text style={styles.buttonText}>{translations.save || 'Save'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={[styles.cancelButton, styles.shadow]} onPress={() => navigation.goBack()}>
             <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
           </TouchableOpacity>
         </View>

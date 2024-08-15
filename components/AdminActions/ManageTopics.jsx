@@ -8,6 +8,7 @@ import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import { NavigationContext } from '../../context/NavigationContext';
+import { COLORS, FONTS } from '../General/colors';
 
 const ManageTopics = ({ route, navigation }) => {
   const { lesson } = route.params;
@@ -28,7 +29,7 @@ const ManageTopics = ({ route, navigation }) => {
       setTopics(response.data);
     } catch (error) {
       console.error('Failed to fetch topics:', error);
-      Alert.alert(translations.error || 'Error', translations.failedToFetchTopics || 'Failed to fetch topics. Please try again later.');
+      Alert.alert(translations.error, translations.failedToFetchTopics || 'Failed to fetch topics. Please try again later.');
     }
   };
 
@@ -51,17 +52,17 @@ const ManageTopics = ({ route, navigation }) => {
       await deleteTopic(topicId, action, currentLessonId, user.userId);
       setTopics(topics.filter(topic => topic._id !== topicId));
       const successMessage = action === 'delete' ? translations.deletedSuccessfully : translations.unlinkedSuccessfully;
-      Alert.alert(translations.success || 'Success', `${translations.topic} ${successMessage || 'action completed successfully'}`);
+      Alert.alert(translations.success, `${translations.topic} ${successMessage}`);
     } catch (error) {
       console.error('Failed to process topic:', error);
       const errorMessage = action === 'delete' ? translations.failedToDelete : translations.failedToUnlink;
-      Alert.alert(translations.error || 'Error', `${errorMessage || 'Failed to process'} ${translations.topic.toLowerCase()}`);
+      Alert.alert(translations.error, `${errorMessage} ${translations.topic.toLowerCase()}`);
     }
   };
 
   const confirmDeleteOrUnlink = (topicId) => {
     Alert.alert(
-      translations.confirm || 'Confirm',
+      translations.confirm,
       translations.confirmDeleteOrUnlink || 'Do you want to delete the topic or just unlink it from the lesson?',
       [
         {
@@ -90,33 +91,36 @@ const ManageTopics = ({ route, navigation }) => {
     <View style={styles.container}>
       <Header />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManageLessons', { chapter: { _id: lesson.chapterId } })}>
-        <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>{translations.backToLessons || 'Back to Lessons'}</Text>
+        <Icon name="arrow-left" size={16} color={COLORS.white} />
+        <Text style={styles.backButtonText}>Back to {translations.lesson}</Text>
       </TouchableOpacity>
       <Text style={styles.sectionTitle}>{translations.manage} {translations.topics} {translations.for} {lesson.title}</Text>
-      <TouchableOpacity style={styles.addButton} onPress={handleAddTopic}>
-        <Icon name="plus" size={16} color="#fff" style={styles.addButtonIcon} />
-        <Text style={styles.addButtonText}>{translations.add} {translations.topic}</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={[styles.addButton, styles.shadow]} onPress={handleAddTopic}>
+          <Icon name="plus" size={16} color={COLORS.white} />
+          <Text style={styles.addButtonText}>{translations.add} {translations.topic}</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={topics}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View style={styles.planItem}>
-            <Text style={styles.planText}>{item.title}</Text>
+          <View style={[styles.topicItem, styles.shadow]}>
+            <Text style={styles.topicText}>{item.title}</Text>
             <View style={styles.iconContainer}>
               <TouchableOpacity onPress={() => handleEditTopic(item)}>
-                <Icon name="pencil" size={20} color="#000" style={styles.icon} />
+                <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
-                <Icon name="trash" size={20} color="#000" style={styles.icon} />
+                <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
-                <Icon name="question-circle" size={20} color="#000" style={styles.icon} />
+                <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
               </TouchableOpacity>
             </View>
           </View>
         )}
+        contentContainerStyle={styles.topicsList}
       />
     </View>
   );

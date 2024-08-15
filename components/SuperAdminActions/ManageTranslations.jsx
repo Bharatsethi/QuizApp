@@ -10,16 +10,20 @@ const ManageTranslations = ({ navigation }) => {
   const { translations, setTranslationContext } = useContext(TranslationContext);
   const [translationsState, setTranslationsState] = useState(translations);
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const getTranslations = async () => {
       setLoading(true);
       try {
         const response = await fetchTranslations();
         if (response.data && response.data.length > 0) {
-          console.log('Fetched translations:', response.data[0]); // Debug statement
           setTranslationsState(response.data[0]);
           setTranslationContext(response.data[0]);
         } else {
+          // Initialize with default translation structure if none is found
+          setTranslationsState({
+            ...translations,
+          });
           console.error('No translations found in response:', response);
         }
       } catch (error) {
@@ -48,7 +52,11 @@ const ManageTranslations = ({ navigation }) => {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
   }
 
   if (!translationsState) {
@@ -63,7 +71,7 @@ const ManageTranslations = ({ navigation }) => {
   return (
     <ScrollView style={styles.container}>
       <Header />
-      <Text style={styles.title}>Manage {translations.translations || 'Translations'}</Text>
+      <Text style={styles.title}>{translations.manage || 'Manage'} {translations.translations || 'Translations'}</Text>
       <View style={styles.gridContainer}>
         {Object.keys(translationsState).map((key) => (
           <View key={key} style={styles.gridItem}>
@@ -77,7 +85,7 @@ const ManageTranslations = ({ navigation }) => {
           </View>
         ))}
       </View>
-      <View style={styles.buttonContainer}>
+      <View style={styles.stickyButtonContainer}>
         <TouchableOpacity style={styles.primaryButton} onPress={handleSave}>
           <Text style={styles.buttonText}>{translations.saveTranslation || 'Save Translations'}</Text>
         </TouchableOpacity>

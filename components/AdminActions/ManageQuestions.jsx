@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, TouchableOpacity, Alert, Modal, Button } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Modal } from 'react-native';
 import { fetchQuestions, deleteQuestion, unlinkQuestionFromContext, linkQuestionToQuiz } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -10,7 +10,7 @@ import { UserContext } from '../../context/UserContext';
 import styles from '../General/styles';
 
 const ManageQuestions = ({ route, navigation }) => {
-  const { quizId } = route.params || {}; // Ensure route is correctly included
+  const { quizId } = route.params;
   const [questions, setQuestions] = useState([]);
   const [availableQuestions, setAvailableQuestions] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -19,33 +19,29 @@ const ManageQuestions = ({ route, navigation }) => {
   const { user } = useContext(UserContext);
 
   useEffect(() => {
-    setCurrentQuizId(quizId); // Ensure currentQuizId is updated when navigated to this screen
-  }, [quizId, setCurrentQuizId]);
+    setCurrentQuizId(quizId);
+    fetchData();
+  }, [quizId]);
 
-  const fetchData = useCallback(async () => {
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [currentQuizId])
+  );
+
+  const fetchData = async () => {
     if (currentQuizId) {
       try {
         const response = await fetchQuestions(user.userId, currentQuizId);
         if (response.status === 200) {
           setQuestions(response.data);
         } else {
-          throw new Error('Failed to fetch questions');
+          Alert.alert(translations.error, translations.failedToFetchQuestions);
         }
       } catch (error) {
-        Alert.alert(translations.error || 'Error', translations.failedToFetchQuestions || 'Failed to fetch questions');
+        Alert.alert(translations.error, error.message || translations.failedToFetchQuestions);
       }
     }
-  }, [currentQuizId, translations, user.userId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [fetchData])
-  );
-
-  const goBackToManageQuizzes = () => {
-    setCurrentQuizId(null); // Reset currentQuizId when leaving the screen
-    navigation.navigate('ManageQuizzes', { contextId, contextType }); // Pass back the contextId and contextType
   };
 
   const handleAddQuestion = () => {
@@ -59,42 +55,35 @@ const ManageQuestions = ({ route, navigation }) => {
   const handleDeleteQuestion = async (questionId) => {
     try {
       await deleteQuestion(questionId);
-      setQuestions(questions.filter((question) => question._id !== questionId));
-      Alert.alert(translations.success || 'Success', translations.questionDeletedSuccessfully || 'Question deleted successfully');
+      setQuestions(questions.filter((q) => q._id !== questionId));
+      Alert.alert(translations.success, translations.questionDeletedSuccessfully);
     } catch (error) {
-      Alert.alert(translations.error || 'Error', translations.failedToDeleteQuestion || 'Failed to delete question');
+      Alert.alert(translations.error, translations.failedToDeleteQuestion);
     }
   };
 
-  const handleUnlinkQuestion = async (questionId) => {
+  const handleLinkOrUnlinkQuestion = async (questionId, isLinked) => {
     try {
-      await unlinkQuestionFromContext(currentQuizId, questionId, 'quiz');
-      setQuestions(questions.filter((question) => question._id !== questionId));
-      Alert.alert(translations.success || 'Success', translations.questionUnlinkedSuccessfully || 'Question unlinked successfully');
+      const response = isLinked 
+        ? await unlinkQuestionFromContext(currentQuizId, questionId, 'quiz') 
+        : await linkQuestionToQuiz(currentQuizId, questionId);
+      if (response.status === 200) {
+        fetchData();
+        Alert.alert(translations.success, isLinked ? translations.questionUnlinkedSuccessfully : translations.questionLinkedSuccessfully);
+      }
     } catch (error) {
-      Alert.alert(translations.error || 'Error', translations.failedToUnlinkQuestion || 'Failed to unlink question');
+      Alert.alert(translations.error, isLinked ? translations.failedToUnlinkQuestion : translations.failedToLinkQuestion);
     }
   };
 
   const handleLinkQuestion = async () => {
     try {
-      const response = await fetchQuestions(); // Fetch all questions to allow selection
-      const availableQuestions = response.data.filter((question) => !questions.some((q) => q._id === question._id));
-      setAvailableQuestions(availableQuestions);
+      const response = await fetchQuestions(user.userId);
+      const nonLinkedQuestions = response.data.filter((question) => !questions.some((q) => q._id === question._id));
+      setAvailableQuestions(nonLinkedQuestions);
       setModalVisible(true);
     } catch (error) {
-      Alert.alert(translations.error || 'Error', translations.failedToFetchQuestions || 'Failed to fetch questions');
-    }
-  };
-
-  const linkSelectedQuestion = async (questionId) => {
-    try {
-      await linkQuestionToQuiz(currentQuizId, questionId);
-      setQuestions([...questions, availableQuestions.find((q) => q._id === questionId)]);
-      Alert.alert(translations.success || 'Success', translations.questionLinkedSuccessfully || 'Question linked successfully');
-      setModalVisible(false);
-    } catch (error) {
-      Alert.alert(translations.error || 'Error', translations.failedToLinkQuestion || 'Failed to link question');
+      Alert.alert(translations.error, translations.failedToFetchQuestions);
     }
   };
 
@@ -107,17 +96,22 @@ const ManageQuestions = ({ route, navigation }) => {
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>{translations.selectQuestion || 'Select Question'}</Text>
+          <Text style={styles.modalTitle}>{translations.selectQuestion}</Text>
           <FlatList
             data={availableQuestions}
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => linkSelectedQuestion(item._id)} style={styles.modalItem}>
+              <TouchableOpacity
+                onPress={() => {
+                  handleLinkOrUnlinkQuestion(item._id, false);
+                  setModalVisible(false);
+                }}
+                style={styles.modalItem}
+              >
                 <Text>{item.text}</Text>
               </TouchableOpacity>
             )}
           />
-          <Button title={translations.cancel || 'Cancel'} onPress={() => setModalVisible(false)} />
         </View>
       </View>
     </Modal>
@@ -126,41 +120,39 @@ const ManageQuestions = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={goBackToManageQuizzes}
-      >
-        <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
-        <Text style={styles.backButtonText}>{translations.back} to Manage Quizzes</Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Icon name="arrow-left" size={16} color="#fff" />
+        <Text style={styles.backButtonText}>Back to {translations.quiz}</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.addButton} onPress={handleAddQuestion}>
-        <Icon name="plus" size={16} color="#fff" style={styles.buttonIcon} />
-        <Text style={styles.buttonText}>{translations.add} {translations.question}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.addButton} onPress={handleLinkQuestion}>
-        <Icon name="link" size={16} color="#fff" style={styles.buttonIcon} />
-        <Text style={styles.buttonText}>{translations.link} {translations.question}</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={[styles.addButton, styles.shadow]} onPress={handleAddQuestion}>
+          <Icon name="plus" size={16} color="#fff" />
+          <Text style={styles.buttonText}>Add {translations.question}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.addButton, styles.shadow]} onPress={handleLinkQuestion}>
+          <Icon name="link" size={16} color="#fff" />
+          <Text style={styles.buttonText}>Link {translations.question}</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={questions}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <View style={styles.questionItem}>
+          <View style={[styles.quizItem, styles.shadow]}>
             <Text style={styles.questionText}>{item.text}</Text>
             <View style={styles.iconContainer}>
               <TouchableOpacity onPress={() => handleEditQuestion(item)}>
-                <Icon name="pencil" size="20" color="#000" style={styles.icon} />
+                <Icon name="pencil" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleDeleteQuestion(item._id)}>
-                <Icon name="trash" size="20" color="#000" style={styles.icon} />
+                <Icon name="trash" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleUnlinkQuestion(item._id)}>
-                <Icon name="unlink" size="20" color="#000" style={styles.icon} />
+              <TouchableOpacity onPress={() => handleLinkOrUnlinkQuestion(item._id, true)}>
+                <Icon name="unlink" size={20} color="#000" style={styles.icon} />
               </TouchableOpacity>
             </View>
           </View>
         )}
-        contentContainerStyle={styles.contentContainer}
       />
       {renderAvailableQuestions()}
     </View>
