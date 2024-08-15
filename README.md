@@ -237,3 +237,14 @@ npx react-native link react-native-vector-icons
 npx react-native run-android  # For Android
 npx react-native run-ios      # For iOS
 
+7. Run the server on lightsail
+nvm list-remote
+nvm install 20.9.0
+nvm use 20.9.0
+npm install pm2 -g
+pm2 start app.js --name "QuizApp"
+pm2 startup
+pm2 save
+
+
+
