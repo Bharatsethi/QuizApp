@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchLessons, deleteLesson } from '../../services/api';
 import Header from '../General/Header';
@@ -13,6 +13,7 @@ import { COLORS, FONTS } from '../General/colors';
 const ManageLessons = ({ route, navigation }) => {
   const { chapter } = route.params;
   const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true); // Loading state
   const { currentChapterId, setCurrentChapterId, setCurrentLessonId } = useContext(NavigationContext);
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
@@ -30,6 +31,8 @@ const ManageLessons = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to fetch lessons:', error);
       Alert.alert(translations.error, translations.failedToFetchLessons || 'Failed to fetch lessons. Please try again later.');
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -105,30 +108,36 @@ const ManageLessons = ({ route, navigation }) => {
           <Text style={styles.addButtonText}>{translations.add} {translations.lesson}</Text>
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={lessons}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={[styles.lessonItem, styles.shadow]}>
-            <Text style={styles.lessonText}>{item.title}</Text>
-            <View style={styles.iconContainer}>
-              <TouchableOpacity onPress={() => handleEditLesson(item)}>
-                <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
-                <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleManageTopics(item)}>
-                <Icon name="book" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
-                <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      ) : lessons.length === 0 ? (
+        <Text style={styles.noLessonsText}>{translations.noLessonsAvailable || 'No lessons available.'}</Text>
+      ) : (
+        <FlatList
+          data={lessons}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <View style={[styles.lessonItem, styles.shadow]}>
+              <Text style={styles.lessonText}>{item.title}</Text>
+              <View style={styles.iconContainer}>
+                <TouchableOpacity onPress={() => handleEditLesson(item)}>
+                  <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
+                  <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleManageTopics(item)}>
+                  <Icon name="book" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
+                  <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
-        contentContainerStyle={styles.lessonsList}
-      />
+          )}
+          contentContainerStyle={styles.lessonsList}
+        />
+      )}
     </View>
   );
 };

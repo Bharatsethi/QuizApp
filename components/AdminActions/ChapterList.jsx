@@ -1,6 +1,5 @@
-// ChapterList.jsx
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, Alert, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, FlatList, ActivityIndicator } from 'react-native';
 import { fetchChapters } from '../../services/api';
 import Header from '../General/Header';
 import styles from '../General/styles';
@@ -9,6 +8,7 @@ import { TranslationContext } from '../../context/TranslationContext';
 const ChapterList = ({ route, navigation }) => {
   const { planId } = route.params;
   const [chapters, setChapters] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
@@ -19,6 +19,8 @@ const ChapterList = ({ route, navigation }) => {
       } catch (error) {
         console.error('Failed to fetch chapters:', error);
         Alert.alert(translations.error || 'Error', translations.failedToFetchChapters || `Failed to fetch ${translations.chapter.toLowerCase()}s`);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -42,13 +44,17 @@ const ChapterList = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <FlatList
-        data={chapters}
-        keyExtractor={(item) => item._id}
-        renderItem={renderChapterItem}
-        contentContainerStyle={styles.contentContainer}
-        ListEmptyComponent={<Text style={styles.emptyListText}>{translations.noChapters || 'No chapters available'}</Text>}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={chapters}
+          keyExtractor={(item) => item._id}
+          renderItem={renderChapterItem}
+          contentContainerStyle={styles.contentContainer}
+          ListEmptyComponent={<Text style={styles.emptyListText}>{translations.noChapters || 'No chapters available'}</Text>}
+        />
+      )}
     </View>
   );
 };

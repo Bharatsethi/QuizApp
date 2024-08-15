@@ -37,19 +37,31 @@ const Quiz = () => {
     try {
       const { _id } = questions[currentQuestion];
       const response = await submitAnswer({ questionId: _id, answer: selectedAnswer });
-      if (response.data.isCorrect) {
-        setScore(score + 1);
+      const isCorrect = response.data.isCorrect;
+
+      if (isCorrect) {
+        setScore(prevScore => prevScore + 1);
+      }
+
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion(currentQuestion + 1);
+        setSelectedAnswer(null);
+      } else {
+        Alert.alert(
+          translations.quizCompleted || 'Quiz Completed',
+          `${translations.yourScoreIs || 'Your score is:'} ${isCorrect ? score + 1 : score}`,
+          [{ text: translations.ok || 'OK', onPress: () => resetQuiz() }]
+        );
       }
     } catch (error) {
       Alert.alert(translations.error || 'Error', translations.failedToSubmitAnswer || 'Failed to submit answer');
     }
+  };
 
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
-    } else {
-      Alert.alert(translations.quizCompleted || 'Quiz Completed', `${translations.yourScoreIs || 'Your score is:'} ${score}`);
-    }
+  const resetQuiz = () => {
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setScore(0);
   };
 
   if (loading) {

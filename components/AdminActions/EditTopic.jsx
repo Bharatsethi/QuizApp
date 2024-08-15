@@ -1,11 +1,10 @@
 import React, { useState, useContext, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { updateTopic } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
-import AdvancedRTF from '../General/AdvancedRTFold'; // Import the new AdvancedRTF component
+import AdvancedRTF from '../General/AdvancedRTF'; // Import the new AdvancedRTF component
 import styles from '../General/styles';
-//import buttonStyles from '../General/buttonStyles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -15,23 +14,31 @@ const EditTopic = ({ route, navigation }) => {
   const [title, setTitle] = useState(topic.title);
   const [content, setContent] = useState(topic.content);
   const [useAdvancedEditor, setUseAdvancedEditor] = useState(false); // State to toggle between editors
+  const [loading, setLoading] = useState(false); // Loading state
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
   const richTextEditor = useRef();
 
   const handleSaveChanges = async () => {
+    if (!title.trim()) {
+      Alert.alert(translations.error || 'Error', translations.titleCannotBeEmpty || 'Title cannot be empty.');
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await updateTopic(topic._id, { title, content, adminId: user.userId });
       if (response.status === 200) {
         Alert.alert(translations.success || 'Success', `${translations.topic} ${translations.updatedSuccessfully || 'updated successfully'}`);
         navigation.navigate('ManageTopics', { lesson: { _id: topic.lessonId } });
       } else {
-        console.error('Update topic failed:', response.data);
-        Alert.alert(translations.error || 'Error', `${translations.failedToUpdate || 'Failed to update'} ${translations.topic.toLowerCase()}`);
+        throw new Error('Failed to update topic');
       }
     } catch (error) {
-      console.error('Update topic error:', error.response ? error.response.data : error.message);
+      console.error('Update topic failed:', error.response ? error.response.data : error.message);
       Alert.alert(translations.error || 'Error', `${translations.failedToUpdate || 'Failed to update'} ${translations.topic.toLowerCase()}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,8 +75,12 @@ const EditTopic = ({ route, navigation }) => {
         </TouchableOpacity>
       </ScrollView>
       <View style={styles.superbuttonContainer}>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleSaveChanges}>
-          <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleSaveChanges} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.navigate('ManageTopics', { lesson: { _id: topic.lessonId } })}>
           <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>

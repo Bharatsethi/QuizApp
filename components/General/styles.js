@@ -8,10 +8,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginVertical: 20,
   },
-  superbuttonContainer: {
+  superButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
+    marginTop: 20,
   },
   questionContainer: {
     marginBottom: 20,
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   toggleEditorButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    padding: 15,
     backgroundColor: COLORS.addexisitng,
     borderRadius: 5,
     marginTop: 10,
@@ -31,6 +31,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.switchbutton,
     borderRadius: 5,
     marginTop: 10,
+    marginVertical: 15,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonContainer: {
     position: 'absolute',
@@ -84,22 +90,19 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   primaryButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 15,
+    borderRadius: 5,
     flex: 1,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 4,
     alignItems: 'center',
-    marginHorizontal: 5,
+    marginRight: 10, // Added margin to separate the buttons
   },
   cancelButton: {
-    flex: 1,
-    backgroundColor: COLORS.danger,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#d9534f',
+    paddingVertical: 15,
     borderRadius: 5,
+    flex: 1,
     alignItems: 'center',
-    marginHorizontal: 5,
   },
   secondaryButton: {
     backgroundColor: COLORS.secondary,
@@ -171,10 +174,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.back,
     borderRadius: 5,
     margin: 10,
+    marginVertical: 10,
   },
   backButtonText: {
     color: '#fff',
-    marginLeft: 5,
+    marginLeft: 10,
     fontSize: FONTS.sizeMedium,
   },
   tileButton: {
@@ -274,6 +278,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: COLORS.gray,
     borderWidth: 1,
+    padding: 10,
     paddingHorizontal: 10,
     borderRadius: 4,
     backgroundColor: COLORS.white,
@@ -290,6 +295,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  editorWrapper: {
+    marginBottom: 20,
+    minHeight: 150,
   },
   buttonRow: {
     flexDirection: 'row',

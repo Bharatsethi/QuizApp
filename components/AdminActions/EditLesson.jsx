@@ -1,10 +1,9 @@
-// components/AdminActions/EditLesson.jsx
 import React, { useState, useContext, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { updateLesson } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
-import AdvancedRTF from '../General/AdvancedRTFold'; // Import the new AdvancedRTF component
+import AdvancedRTF from '../General/AdvancedRTF'; // Correct import path for AdvancedRTF component
 import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
@@ -20,6 +19,10 @@ const EditLesson = ({ route, navigation }) => {
   const richText = useRef();
 
   const handleSaveChanges = async () => {
+    if (!title || !content) {
+      Alert.alert(translations.error || 'Error', 'All fields are required');
+      return;
+    }
     try {
       const adminId = user?.userId;
       if (!adminId) {
@@ -46,30 +49,34 @@ const EditLesson = ({ route, navigation }) => {
         <Icon name="arrow-left" size={16} color="#fff" />
         <Text style={styles.backButtonText}>{translations.backToDashboard || 'Back to Dashboard'}</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>{translations.edit || 'Edit'} {translations.lesson || 'Lesson'}</Text>
-      <Text style={styles.label}>{translations.lesson || 'Lesson'} {translations.title || 'Title'}:</Text>
-      <TextInput
-        style={styles.input}
-        value={title}
-        onChangeText={setTitle}
-        placeholder={`${translations.enter || 'Enter'} ${translations.lesson?.toLowerCase() || 'lesson'} ${translations.title?.toLowerCase() || 'title'}`}
-      />
-      <Text style={styles.label}>{translations.lesson || 'Lesson'} {translations.content || 'Content'}:</Text>
-      {useAdvancedEditor ? (
-        <AdvancedRTF content={content} onContentChange={setContent} />
-      ) : (
-        <RichTextEditor
-          ref={richText}
-          content={content}
-          onContentChange={setContent}
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+        <Text style={styles.title}>{translations.edit || 'Edit'} {translations.lesson || 'Lesson'}</Text>
+        <Text style={styles.label}>{translations.lesson || 'Lesson'} {translations.title || 'Title'}:</Text>
+        <TextInput
+          style={styles.input}
+          value={title}
+          onChangeText={setTitle}
+          placeholder={`${translations.enter || 'Enter'} ${translations.lesson?.toLowerCase() || 'lesson'} ${translations.title?.toLowerCase() || 'title'}`}
         />
-      )}
-      <TouchableOpacity 
-        style={styles.toggleEditorButton}
-        onPress={() => setUseAdvancedEditor(!useAdvancedEditor)}
-      >
-        <Text style={styles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
-      </TouchableOpacity>
+        <Text style={styles.label}>{translations.lesson || 'Lesson'} {translations.content || 'Content'}:</Text>
+        <View style={styles.editorWrapper}>
+          {useAdvancedEditor ? (
+            <AdvancedRTF content={content} onContentChange={setContent} />
+          ) : (
+            <RichTextEditor
+              ref={richText}
+              content={content}
+              onContentChange={setContent}
+            />
+          )}
+        </View>
+        <TouchableOpacity 
+          style={[styles.toggleEditorButton, { marginVertical: 20 }]}
+          onPress={() => setUseAdvancedEditor(!useAdvancedEditor)}
+        >
+          <Text style={styles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
+        </TouchableOpacity>
+      </ScrollView>
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.primaryButton} onPress={handleSaveChanges}>
           <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>

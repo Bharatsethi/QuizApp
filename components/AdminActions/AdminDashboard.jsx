@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Alert, Modal } from 'react-native';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import { View, Text, TouchableOpacity, FlatList, Alert, Modal, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Header from '../General/Header';
 import { fetchPlans, fetchUsersbyAdmin, fetchTranslations, deletePlan, addUserToPlan } from '../../services/api';
@@ -11,33 +11,40 @@ const AdminDashboard = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const { translations, setTranslationContext } = useContext(TranslationContext);
 
   useEffect(() => {
     fetchPlansData();
-    fetchUsersData();
     fetchTranslationsData();
   }, []);
 
   const fetchPlansData = async () => {
+    setLoadingPlans(true);
     try {
       const response = await fetchPlans();
       setPlans(response.data);
     } catch (error) {
       console.error('Failed to fetch plans:', error);
       Alert.alert(translations.error || 'Error', translations.failedToFetchPlans || 'Failed to fetch plans. Please try again later.');
+    } finally {
+      setLoadingPlans(false);
     }
   };
 
-  const fetchUsersData = async () => {
+  const fetchUsersData = useCallback(async () => {
+    setLoadingUsers(true);
     try {
       const response = await fetchUsersbyAdmin();
       setUsers(response.data);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       Alert.alert(translations.error || 'Error', translations.failedToFetchUsers || 'Failed to fetch users. Please try again later.');
+    } finally {
+      setLoadingUsers(false);
     }
-  };
+  }, [translations]);
 
   const fetchTranslationsData = async () => {
     try {
@@ -50,37 +57,44 @@ const AdminDashboard = ({ navigation }) => {
     }
   };
 
-  const handleManagePlans = () => {
+  const handleManagePlans = useCallback(() => {
     navigation.navigate('ManagePlans');
-  };
+  }, [navigation]);
 
-  const handleManageUsers = () => {
+  const handleManageUsers = useCallback(() => {
     navigation.navigate('UserList');
-  };
+  }, [navigation]);
 
-  const handleManageMessages = () => {
+  const handleManageMessages = useCallback(() => {
     navigation.navigate('ManageMessages');
-  };
+  }, [navigation]);
 
-  const handleViewPlan = (planId) => {
-    navigation.navigate('PlanDetails', { planId });
-  };
+  const handleViewPlan = useCallback(
+    (planId) => {
+      navigation.navigate('PlanDetails', { planId });
+    },
+    [navigation]
+  );
 
-  const handleAddUserToPlan = (plan) => {
+  const handleAddUserToPlan = useCallback((plan) => {
     setSelectedPlan(plan);
     setShowUserModal(true);
-  };
+    fetchUsersData();
+  }, [fetchUsersData]);
 
-  const handleUserSelection = async (userId) => {
-    try {
-      await addUserToPlan(selectedPlan._id, userId);
-      Alert.alert(translations.success || 'Success', translations.userAddedToPlan || 'User added to plan successfully');
-      setShowUserModal(false);
-    } catch (error) {
-      console.error('Failed to add user to plan:', error);
-      Alert.alert(translations.error || 'Error', translations.failedToAddUserToPlan || 'Failed to add user to plan. Please try again later.');
-    }
-  };
+  const handleUserSelection = useCallback(
+    async (userId) => {
+      try {
+        await addUserToPlan(selectedPlan._id, userId);
+        Alert.alert(translations.success || 'Success', translations.userAddedToPlan || 'User added to plan successfully');
+        setShowUserModal(false);
+      } catch (error) {
+        console.error('Failed to add user to plan:', error);
+        Alert.alert(translations.error || 'Error', translations.failedToAddUserToPlan || 'Failed to add user to plan. Please try again later.');
+      }
+    },
+    [selectedPlan, translations]
+  );
 
   const renderPlanItem = ({ item }) => (
     <View style={styles.planItem}>
@@ -126,7 +140,9 @@ const AdminDashboard = ({ navigation }) => {
         </TouchableOpacity>
       </View>
       <Text style={styles.sectionTitle}>{translations.plans || 'Plans'}</Text>
-      {plans.length === 0 ? (
+      {loadingPlans ? (
+        <ActivityIndicator size="large" color="#000" />
+      ) : plans.length === 0 ? (
         <Text style={styles.noPlansText}>{translations.noPlans || 'No plans created yet. Start by creating a plan.'}</Text>
       ) : (
         <FlatList
@@ -139,12 +155,16 @@ const AdminDashboard = ({ navigation }) => {
       <Modal visible={showUserModal} animationType="slide">
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>{translations.selectUser || 'Select User'}</Text>
-          <FlatList
-            data={users}
-            keyExtractor={(item) => item._id}
-            renderItem={renderUserItem}
-            contentContainerStyle={styles.usersList}
-          />
+          {loadingUsers ? (
+            <ActivityIndicator size="large" color="#000" />
+          ) : (
+            <FlatList
+              data={users}
+              keyExtractor={(item) => item._id}
+              renderItem={renderUserItem}
+              contentContainerStyle={styles.usersList}
+            />
+          )}
           <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowUserModal(false)}>
             <Text style={styles.modalCloseButtonText}>{translations.close || 'Close'}</Text>
           </TouchableOpacity>

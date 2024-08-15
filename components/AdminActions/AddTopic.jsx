@@ -3,9 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'reac
 import { createTopic } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
-import AdvancedRTF from '../General/AdvancedRTFold'; // Import the new AdvancedRTF component
+import AdvancedRTF from '../General/AdvancedRTF'; // Correct import for the AdvancedRTF component
 import styles from '../General/styles';
-//import buttonStyles from '../General/buttonStyles';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -20,6 +19,10 @@ const AddTopic = ({ route, navigation }) => {
   const richTextEditor = useRef();
 
   const handleAddTopic = async () => {
+    if (!title || !content) {
+      Alert.alert(translations.error || 'Error', 'All fields are required');
+      return;
+    }
     try {
       const adminId = user?.userId;
       if (!adminId) {
@@ -51,7 +54,7 @@ const AddTopic = ({ route, navigation }) => {
         <Icon name="arrow-left" size={16} color="#fff" />
         <Text style={styles.backButtonText}>{translations.backToManage || 'Back to Manage'} {translations.topic || 'Topic'}s</Text>
       </TouchableOpacity>
-      <ScrollView style={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         <Text style={styles.title}>{translations.add || 'Add'} {translations.topic || 'Topic'}</Text>
         <TouchableOpacity style={styles.addExistingButton} onPress={handleNavigateToExistingTopics}>
           <Icon name="search" size={16} color="#fff" />
@@ -64,23 +67,25 @@ const AddTopic = ({ route, navigation }) => {
           placeholder={`${translations.enter || 'Enter'} ${translations.topic.toLowerCase() || 'topic'} ${translations.title || 'title'}`}
         />
         <Text style={styles.label}>{translations.topic || 'Topic'} {translations.content || 'Content'}:</Text>
-        {useAdvancedEditor ? (
-          <AdvancedRTF content={content} onContentChange={setContent} />
-        ) : (
-          <RichTextEditor
-            ref={richTextEditor}
-            content={content}
-            onContentChange={setContent}
-          />
-        )}
+        <View style={styles.editorWrapper}>
+          {useAdvancedEditor ? (
+            <AdvancedRTF content={content} onContentChange={setContent} />
+          ) : (
+            <RichTextEditor
+              ref={richTextEditor}
+              content={content}
+              onContentChange={setContent}
+            />
+          )}
+        </View>
         <TouchableOpacity 
-          style={styles.toggleEditorButton}
+          style={[styles.toggleEditorButton, { marginVertical: 20 }]} 
           onPress={() => setUseAdvancedEditor(!useAdvancedEditor)}
         >
           <Text style={styles.buttonText}>{useAdvancedEditor ? 'Switch to Basic Editor' : 'Switch to Advanced Editor'}</Text>
         </TouchableOpacity>
       </ScrollView>
-      <View style={styles.superbuttonContainer}>
+      <View style={styles.superButtonContainer}>
         <TouchableOpacity style={styles.primaryButton} onPress={handleAddTopic}>
           <Text style={styles.buttonText}>{translations.add || 'Add'} {translations.topic || 'Topic'}</Text>
         </TouchableOpacity>

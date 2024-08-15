@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { fetchTopics } from '../../services/api';
 import Header from '../General/Header';
 import styles from '../General/styles';
@@ -17,7 +17,17 @@ const TopicList = ({ route, navigation }) => {
         const response = await fetchTopics(lessonId);
         setTopics(response.data);
       } catch (error) {
-        Alert.alert(translations.error || 'Error', `${translations.failedToLoad || 'Failed to load'} ${translations.topic.toLowerCase() || 'topics'}`);
+        Alert.alert(
+          translations.error || 'Error',
+          `${translations.failedToLoad || 'Failed to load'} ${translations.topic?.toLowerCase() || 'topics'}`,
+          [
+            {
+              text: translations.retry || 'Retry',
+              onPress: getTopics,
+            },
+            { text: translations.cancel || 'Cancel', style: 'cancel' },
+          ]
+        );
       } finally {
         setLoading(false);
       }
@@ -27,10 +37,13 @@ const TopicList = ({ route, navigation }) => {
   }, [lessonId, translations]);
 
   const renderTopicItem = ({ item }) => (
-    <View style={styles.planItem}>
+    <TouchableOpacity
+      style={styles.planItem}
+      onPress={() => navigation.navigate('TopicDetails', { topicId: item._id })}
+    >
       <Text style={styles.planText}>{item.title}</Text>
       <Text style={styles.chapterText}>{item.content}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {

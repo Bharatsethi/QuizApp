@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchTopics, deleteTopic } from '../../services/api';
 import Header from '../General/Header';
@@ -13,6 +13,7 @@ import { COLORS, FONTS } from '../General/colors';
 const ManageTopics = ({ route, navigation }) => {
   const { lesson } = route.params;
   const [topics, setTopics] = useState([]);
+  const [loading, setLoading] = useState(true); // Add loading state
   const { currentLessonId, setCurrentLessonId, setCurrentTopicId } = useContext(NavigationContext);
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
@@ -24,12 +25,15 @@ const ManageTopics = ({ route, navigation }) => {
   }, [lesson, setCurrentLessonId]);
 
   const fetchData = async () => {
+    setLoading(true); // Start loading
     try {
       const response = await fetchTopics(currentLessonId);
       setTopics(response.data);
     } catch (error) {
       console.error('Failed to fetch topics:', error);
       Alert.alert(translations.error, translations.failedToFetchTopics || 'Failed to fetch topics. Please try again later.');
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -101,27 +105,33 @@ const ManageTopics = ({ route, navigation }) => {
           <Text style={styles.addButtonText}>{translations.add} {translations.topic}</Text>
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={topics}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={[styles.topicItem, styles.shadow]}>
-            <Text style={styles.topicText}>{item.title}</Text>
-            <View style={styles.iconContainer}>
-              <TouchableOpacity onPress={() => handleEditTopic(item)}>
-                <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
-                <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
-                <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      ) : topics.length === 0 ? (
+        <Text style={styles.noTopicsText}>{translations.noTopicsAvailable || 'No topics available for this lesson.'}</Text>
+      ) : (
+        <FlatList
+          data={topics}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <View style={[styles.topicItem, styles.shadow]}>
+              <Text style={styles.topicText}>{item.title}</Text>
+              <View style={styles.iconContainer}>
+                <TouchableOpacity onPress={() => handleEditTopic(item)}>
+                  <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
+                  <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
+                  <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
-        contentContainerStyle={styles.topicsList}
-      />
+          )}
+          contentContainerStyle={styles.topicsList}
+        />
+      )}
     </View>
   );
 };

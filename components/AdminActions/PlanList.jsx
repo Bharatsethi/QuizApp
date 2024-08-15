@@ -1,6 +1,5 @@
-// /component/AdminActions/PlanList.jsx
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { fetchPlans, fetchQuizzesByPlanId, deletePlan } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -9,6 +8,7 @@ import styles from '../General/styles';
 
 const PlanList = ({ navigation }) => {
   const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
@@ -18,6 +18,8 @@ const PlanList = ({ navigation }) => {
         setPlans(response.data);
       } catch (error) {
         Alert.alert(translations.error || 'Error', translations.failedToFetchPlans || 'Failed to fetch plans');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -25,22 +27,41 @@ const PlanList = ({ navigation }) => {
   }, []);
 
   const handleViewQuizzes = async (planId) => {
+    setLoading(true);
     try {
       const response = await fetchQuizzesByPlanId(planId);
       navigation.navigate('QuizList', { quizzes: response.data });
     } catch (error) {
       Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeletePlan = async (planId) => {
-    try {
-      await deletePlan(planId);
-      setPlans(plans.filter((plan) => plan._id !== planId));
-      Alert.alert(translations.success || 'Success', translations.planDeletedSuccessfully || 'Plan deleted successfully');
-    } catch (error) {
-      Alert.alert(translations.error || 'Error', translations.failedToDeletePlan || 'Failed to delete plan');
-    }
+  const handleDeletePlan = (planId) => {
+    Alert.alert(
+      translations.confirm || 'Confirm',
+      translations.areYouSureDeletePlan || 'Are you sure you want to delete this plan?',
+      [
+        {
+          text: translations.cancel || 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: translations.delete || 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deletePlan(planId);
+              setPlans(plans.filter((plan) => plan._id !== planId));
+              Alert.alert(translations.success || 'Success', translations.planDeletedSuccessfully || 'Plan deleted successfully');
+            } catch (error) {
+              Alert.alert(translations.error || 'Error', translations.failedToDeletePlan || 'Failed to delete plan');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleAddPlan = () => {
@@ -48,13 +69,25 @@ const PlanList = ({ navigation }) => {
   };
 
   const refreshPlanList = async () => {
+    setLoading(true);
     try {
       const response = await fetchPlans();
       setPlans(response.data);
     } catch (error) {
       Alert.alert(translations.error || 'Error', translations.failedToRefreshPlanList || 'Failed to refresh plan list');
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -82,6 +115,7 @@ const PlanList = ({ navigation }) => {
           </View>
         )}
         contentContainerStyle={styles.contentContainer}
+        ListEmptyComponent={<Text style={styles.emptyListText}>{translations.noPlansAvailable || 'No plans available'}</Text>}
       />
     </View>
   );

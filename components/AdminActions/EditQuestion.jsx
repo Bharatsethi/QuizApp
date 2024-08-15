@@ -1,5 +1,5 @@
-import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useState, useContext, useRef, useEffect, useCallback } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { getQuestionById, updateQuestion } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
@@ -13,6 +13,7 @@ const EditQuestion = ({ route, navigation }) => {
   const [questionText, setQuestionText] = useState('');
   const [options, setOptions] = useState([]);
   const [questionType, setQuestionType] = useState('multiple-choice'); // 'multiple-choice' or 'free-text'
+  const [loading, setLoading] = useState(true); // Add loading state
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
   const richTextEditor = useRef();
@@ -26,35 +27,37 @@ const EditQuestion = ({ route, navigation }) => {
         setOptions(options || []);
         setQuestionType(type || 'multiple-choice');
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch question details');
+        Alert.alert(translations.error || 'Error', translations.failedToFetchQuestion || 'Failed to fetch question details');
+      } finally {
+        setLoading(false); // Set loading to false after fetching
       }
     };
     fetchQuestion();
-  }, [questionId]);
+  }, [questionId, translations]);
 
-  const handleAddOption = () => {
+  const handleAddOption = useCallback(() => {
     setOptions([...options, { text: '', isCorrect: false }]);
-  };
+  }, [options]);
 
-  const handleRemoveOption = (index) => {
+  const handleRemoveOption = useCallback((index) => {
     setOptions(options.filter((_, i) => i !== index));
-  };
+  }, [options]);
 
-  const handleOptionChange = (index, text) => {
+  const handleOptionChange = useCallback((index, text) => {
     const newOptions = options.slice();
     newOptions[index].text = text;
     setOptions(newOptions);
-  };
+  }, [options]);
 
-  const handleOptionCorrectChange = (index, isCorrect) => {
+  const handleOptionCorrectChange = useCallback((index, isCorrect) => {
     const newOptions = options.slice();
     newOptions[index].isCorrect = isCorrect;
     setOptions(newOptions);
-  };
+  }, [options]);
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = useCallback(async () => {
     if (!questionText || (questionType === 'multiple-choice' && options.some(option => option.text === ''))) {
-      Alert.alert(translations.error || 'Error', 'Please fill all fields');
+      Alert.alert(translations.error || 'Error', translations.fillAllFields || 'Please fill all fields');
       return;
     }
 
@@ -66,16 +69,24 @@ const EditQuestion = ({ route, navigation }) => {
         adminId: user?.userId,
       });
       if (response.status === 200) {
-        Alert.alert('Success', 'Question updated successfully');
+        Alert.alert(translations.success || 'Success', translations.questionUpdatedSuccessfully || 'Question updated successfully');
         navigation.goBack();
       } else {
-        Alert.alert('Error', 'Failed to update question');
+        Alert.alert(translations.error || 'Error', translations.failedToUpdateQuestion || 'Failed to update question');
       }
     } catch (error) {
       console.error('Update question error:', error);
-      Alert.alert('Error', 'Failed to update question');
+      Alert.alert(translations.error || 'Error', translations.failedToUpdateQuestion || 'Failed to update question');
     }
-  };
+  }, [questionText, questionType, options, user?.userId, translations, questionId, navigation]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>

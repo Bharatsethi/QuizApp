@@ -21,14 +21,28 @@ const AddPlan = ({ navigation }) => {
 
     try {
       const planData = { title, description, adminId: user.userId };
-      await createPlan(planData);
-      Alert.alert(translations.success || 'Success', translations.planAdded || 'Plan added successfully', [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
-        },
-      ]);
+      const response = await createPlan(planData);
+      
+      // Assuming the API returns the created plan data
+      if (response && response.data) {
+        Alert.alert(
+          translations.success || 'Success',
+          translations.planAdded || 'Plan added successfully',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Optionally, navigate to the details of the newly created plan
+                navigation.goBack();
+              },
+            },
+          ]
+        );
+      } else {
+        throw new Error('Unexpected response');
+      }
     } catch (error) {
+      console.error('Error adding plan:', error); // Log the error for debugging purposes
       Alert.alert(translations.error || 'Error', translations.somethingWentWrong || 'Something went wrong');
     }
   };
@@ -38,7 +52,9 @@ const AddPlan = ({ navigation }) => {
       <Header />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('ManagePlans')}>
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>{translations.backToManagePlans || `Back to Manage ${translations.plans}`}</Text>
+        <Text style={styles.backButtonText}>
+          {translations.backToManagePlans || `Back to Manage ${translations.plans}`}
+        </Text>
       </TouchableOpacity>
       <Text style={styles.title}>{translations.addPlan || `Add ${translations.plan}`}</Text>
       <TextInput
@@ -46,12 +62,14 @@ const AddPlan = ({ navigation }) => {
         value={title}
         onChangeText={setTitle}
         placeholder={translations.enterPlanTitle || `Enter ${translations.plan.toLowerCase()} title`}
+        autoCorrect={false}
       />
       <TextInput
         style={styles.input}
         value={description}
         onChangeText={setDescription}
         placeholder={translations.enterPlanDescription || `Enter ${translations.plan.toLowerCase()} description`}
+        multiline
       />
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.primaryButton} onPress={handleAddPlan}>

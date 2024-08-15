@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { fetchAllChapters, linkChapterToPlan } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -10,6 +10,7 @@ import styles from '../General/styles';
 const LinkChapters = ({ route, navigation }) => {
   const { plan } = route.params;
   const [chapters, setChapters] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
 
@@ -21,6 +22,8 @@ const LinkChapters = ({ route, navigation }) => {
       } catch (error) {
         console.error('Failed to fetch chapters:', error);
         Alert.alert(translations.error || 'Error', translations.failedToFetchChapters || 'Failed to fetch chapters. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -30,11 +33,22 @@ const LinkChapters = ({ route, navigation }) => {
     try {
       await linkChapterToPlan(plan._id, chapterId);
       Alert.alert(translations.success || 'Success', translations.chapterLinked || 'Chapter linked successfully');
+      // Remove the linked chapter from the list
+      setChapters(chapters.filter(chapter => chapter._id !== chapterId));
     } catch (error) {
       console.error('Failed to link chapter:', error);
       Alert.alert(translations.error || 'Error', translations.failedToLinkChapter || 'Failed to link chapter');
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -56,6 +70,7 @@ const LinkChapters = ({ route, navigation }) => {
           </View>
         )}
         contentContainerStyle={styles.chaptersList}
+        ListEmptyComponent={<Text style={styles.emptyListText}>{translations.noChaptersAvailable || 'No chapters available to link.'}</Text>}
       />
     </View>
   );

@@ -1,61 +1,74 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
-import { fetchQuizByLessonId, submitAnswer } from '../../services/api';
+import { View, Text, FlatList, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { fetchQuizDetails, submitQuizAnswer } from '../../services/api';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
 import styles from '../General/styles';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const ViewQuiz = ({ route, navigation }) => {
-  const { lessonId } = route.params;
+  const { quizId } = route.params;
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
-  const [loading, setLoading] = useState(true);
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetchQuizByLessonId(lessonId);
+        const response = await fetchQuizDetails(quizId);
         setQuiz(response.data);
       } catch (error) {
-        Alert.alert(translations.error, translations.failedToFetchQuiz);
-      } finally {
-        setLoading(false);
+        Alert.alert(translations.error, translations.failedToFetchQuiz || 'Failed to fetch quiz details.');
       }
     };
 
     fetchData();
-  }, [lessonId, translations.error, translations.failedToFetchQuiz]);
+  }, [quizId, translations.error, translations.failedToFetchQuiz]);
 
-  const handleInputChange = (questionId, text) => {
-    setAnswers({ ...answers, [questionId]: text });
+  const handleAnswerChange = (questionId, answer) => {
+    setAnswers({ ...answers, [questionId]: answer });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmitQuiz = async () => {
     try {
-      await submitAnswer(quiz._id, answers);
-      Alert.alert(translations.success, translations.quizSubmitted);
-      navigation.goBack();
+      const response = await submitQuizAnswer(quizId, answers, user.userId);
+      if (response.status === 200) {
+        Alert.alert(translations.success || 'Success', translations.quizSubmittedSuccessfully || 'Quiz submitted successfully!');
+        navigation.goBack();
+      } else {
+        Alert.alert(translations.error, translations.failedToSubmitQuiz || 'Failed to submit quiz. Please try again.');
+      }
     } catch (error) {
-      Alert.alert(translations.error, translations.failedToSubmitQuiz);
+      console.error('Submit Quiz error:', error);
+      Alert.alert(translations.error, translations.failedToSubmitQuiz || 'Failed to submit quiz. Please try again.');
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Header />
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>{translations.loading}</Text>
-      </View>
-    );
-  }
+  const renderQuestion = ({ item }) => (
+    <View style={styles.questionContainer}>
+      <Text style={styles.questionText}>{item.question}</Text>
+      <FlatList
+        data={item.options}
+        keyExtractor={(option) => option._id}
+        renderItem={({ item: option }) => (
+          <TouchableOpacity
+            style={styles.optionContainer}
+            onPress={() => handleAnswerChange(item._id, option)}
+          >
+            <Text style={styles.optionText}>{option}</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  );
 
   if (!quiz) {
     return (
       <View style={styles.container}>
         <Header />
-        <Text>{translations.noQuizAvailable}</Text>
+        <Text style={styles.loadingText}>{translations.loadingQuiz || 'Loading quiz...'}</Text>
       </View>
     );
   }
@@ -63,25 +76,22 @@ const ViewQuiz = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <FlatList
-        data={quiz.questions}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={styles.quizItem}>
-            <Text style={styles.quizQuestion}>{item.questionText}</Text>
-            <TextInput
-              style={styles.quizInput}
-              value={answers[item._id]}
-              onChangeText={(text) => handleInputChange(item._id, text)}
-              placeholder={translations.typeYourAnswer}
-            />
-          </View>
-        )}
-        contentContainerStyle={styles.contentContainer}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>{translations.submit}</Text>
-      </TouchableOpacity>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={16} color="#fff" />
+          <Text style={styles.backButtonText}>{translations.backToPrevious || 'Back'}</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>{quiz.title}</Text>
+        <FlatList
+          data={quiz.questions}
+          keyExtractor={(item) => item._id}
+          renderItem={renderQuestion}
+          contentContainerStyle={styles.quizContentContainer}
+        />
+        <TouchableOpacity style={styles.primaryButton} onPress={handleSubmitQuiz}>
+          <Text style={styles.buttonText}>{translations.submitQuiz || 'Submit Quiz'}</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 };

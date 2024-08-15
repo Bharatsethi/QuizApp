@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchChapters, deleteChapter } from '../../services/api';
 import Header from '../General/Header';
@@ -13,6 +13,7 @@ import { COLORS, FONTS } from '../General/colors';
 const ManageChapters = ({ route, navigation }) => {
   const { plan } = route.params;
   const [chapters, setChapters] = useState([]);
+  const [loading, setLoading] = useState(true);  // New loading state
   const { currentPlanId, setCurrentPlanId, setCurrentChapterId } = useContext(NavigationContext);
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
@@ -30,6 +31,8 @@ const ManageChapters = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to fetch chapters:', error);
       Alert.alert(translations.error, translations.failedToFetchChapters || 'Failed to fetch chapters. Please try again later.');
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -51,10 +54,16 @@ const ManageChapters = ({ route, navigation }) => {
     try {
       await deleteChapter(chapterId, action, currentPlanId, user.userId);
       setChapters(chapters.filter(chapter => chapter._id !== chapterId));
-      Alert.alert(translations.success, `${translations.chapter} ${action === 'delete' ? translations.deletedSuccessfully : translations.unlinkedSuccessfully}`);
+      const successMessage = action === 'delete'
+        ? `${translations.chapter} ${translations.deletedSuccessfully || 'deleted successfully'}`
+        : `${translations.chapter} ${translations.unlinkedSuccessfully || 'unlinked successfully'}`;
+      Alert.alert(translations.success, successMessage);
     } catch (error) {
       console.error(`Failed to ${action} chapter:`, error);
-      Alert.alert(translations.error, `${action === 'delete' ? translations.failedToDelete : translations.failedToUnlink} ${translations.chapter.toLowerCase()}`);
+      const errorMessage = action === 'delete'
+        ? `${translations.failedToDelete || 'Failed to delete'} ${translations.chapter.toLowerCase()}`
+        : `${translations.failedToUnlink || 'Failed to unlink'} ${translations.chapter.toLowerCase()}`;
+      Alert.alert(translations.error, errorMessage);
     }
   };
 
@@ -88,7 +97,6 @@ const ManageChapters = ({ route, navigation }) => {
   const handleManageQuizzes = (chapter) => {
     navigation.navigate('ManageQuizzes', { contextId: chapter._id, contextType: 'chapter' });
   };
-  
 
   return (
     <View style={styles.container}>
@@ -104,30 +112,36 @@ const ManageChapters = ({ route, navigation }) => {
           <Text style={styles.addButtonText}>{translations.add} {translations.chapter}</Text>
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={chapters}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={[styles.chapterItem, styles.shadow]}>
-            <Text style={styles.chapterText}>{item.title}</Text>
-            <View style={styles.iconContainer}>
-              <TouchableOpacity onPress={() => handleEditChapter(item)}>
-                <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
-                <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleManageLessons(item)}>
-                <Icon name="book" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
-                <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
-              </TouchableOpacity>
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      ) : chapters.length === 0 ? (
+        <Text style={styles.noChaptersText}>{translations.noChaptersAvailable || 'No chapters available.'}</Text>
+      ) : (
+        <FlatList
+          data={chapters}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <View style={[styles.chapterItem, styles.shadow]}>
+              <Text style={styles.chapterText}>{item.title}</Text>
+              <View style={styles.iconContainer}>
+                <TouchableOpacity onPress={() => handleEditChapter(item)}>
+                  <Icon name="pencil" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => confirmDeleteOrUnlink(item._id)}>
+                  <Icon name="trash" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleManageLessons(item)}>
+                  <Icon name="book" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleManageQuizzes(item)}>
+                  <Icon name="question-circle" size={20} color={COLORS.black} style={styles.icon} />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
-        contentContainerStyle={styles.chaptersList}
-      />
+          )}
+          contentContainerStyle={styles.chaptersList}
+        />
+      )}
     </View>
   );
 };

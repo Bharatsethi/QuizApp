@@ -9,7 +9,7 @@ const Quiz = require('../models/Quiz');
 const Message = require('../models/Message');
 const Question = require('../models/Question');
 const User = require('../models/User');
-const Translation = require('../models/Translation');
+const UserPlan = require('../models/UserPlan'); // Import the UserPlan model
 
 // Message routes
 router.post('/admin/messages', async (req, res) => {
@@ -37,10 +37,25 @@ router.put('/admin/messages/:id', async (req, res) => {
   const { id } = req.params;
   const { text, adminId } = req.body;
   try {
-    const message = await Message.findOneAndUpdate({ _id: id, admin: adminId }, { message: { text } }, { new: true });
+    const message = await Message.findOneAndUpdate(
+      { _id: id, admin: adminId },
+      { message: { text } },
+      { new: true }
+    );
     res.json(message);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update message' });
+  }
+});
+
+router.delete('/admin/messages/:id', async (req, res) => {
+  const { id } = req.params;
+  const { adminId } = req.body;
+  try {
+    await Message.findOneAndDelete({ _id: id, admin: adminId });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete message' });
   }
 });
 
@@ -59,61 +74,66 @@ router.get('/admin/current', async (req, res) => {
   }
 });
 
-router.delete('/admin/messages/:id', async (req, res) => {
-  const { id } = req.params;
-  const { adminId } = req.body;
-  try {
-    await Message.findOneAndDelete({ _id: id, admin: adminId });
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete message' });
-  }
-});
-
-router.get('/messages', async (req, res) => {
-  try {
-    const messages = await Message.find();
-    res.json(messages);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch messages /messages' });
-  }
-}); 
-
-// Fetch all users
-router.get('/admin/users', async (req, res) => {
-  try {
-    const users = await User.find();
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch users' });
-  }
-});
-
-// Add user to plan
-router.post('/admin/plans/:planId/users/:userId', async (req, res) => {
-  const { planId, userId } = req.params;
-  try {
-    const plan = await Plan.findById(planId);
-    if (!plan) {
-      return res.status(404).json({ error: 'Plan not found' });
-    }
-    plan.users.push(userId);
-    await plan.save();
-    res.status(200).json({ message: 'User added to plan' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to add user to plan' });
-  }
-});
-
 // Plan routes
 router.post('/admin/plans', async (req, res) => {
   const { title, description, adminId } = req.body;
   try {
     const plan = new Plan({ title, description, admin: adminId });
     await plan.save();
+
+    // Add the admin as the first user in the UserPlan collection
+    const userPlan = new UserPlan({ user: adminId, plan: plan._id });
+    await userPlan.save();
+
     res.status(201).json(plan);
   } catch (error) {
     res.status(500).json({ error: 'Failed to create plan' });
+  }
+});
+
+router.post('/plans/:planId/request-access', async (req, res) => {
+  const { planId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+
+    // Check if the user is already assigned to the plan
+    const existingUserPlan = await UserPlan.findOne({ user: userId, plan: planId });
+    if (existingUserPlan) {
+      return res.status(400).json({ error: 'User already assigned to this plan' });
+    }
+
+    // Add the user to the plan
+    const userPlan = new UserPlan({ user: userId, plan: planId });
+    await userPlan.save();
+
+    res.status(200).json({ message: 'User added to plan successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add user to plan' });
+  }
+});
+
+router.post('/admin/plans/:planId/view-as-user', async (req, res) => {
+  const { planId } = req.params;
+  const { userId } = req.body;
+
+  try {
+    // Check if the user is already assigned to the plan
+    let userPlan = await UserPlan.findOne({ user: userId, plan: planId });
+
+    // If not, add the user to the plan
+    if (!userPlan) {
+      userPlan = new UserPlan({ user: userId, plan: planId });
+      await userPlan.save();
+    }
+
+    res.status(200).json({ message: 'User now associated with the plan' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add user to plan for viewing' });
   }
 });
 
@@ -131,14 +151,17 @@ router.put('/admin/plans/:id', async (req, res) => {
   const { id } = req.params;
   const { title, description, adminId } = req.body;
   try {
-    const plan = await Plan.findOneAndUpdate({ _id: id, admin: adminId }, { title, description }, { new: true });
+    const plan = await Plan.findOneAndUpdate(
+      { _id: id, admin: adminId },
+      { title, description },
+      { new: true }
+    );
     res.json(plan);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update plan' });
   }
 });
 
-// Plan routes
 router.delete('/admin/plans/:id', async (req, res) => {
   const { id } = req.params;
   const { adminId } = req.body;
@@ -147,14 +170,17 @@ router.delete('/admin/plans/:id', async (req, res) => {
     if (!deletedPlan) {
       return res.status(404).json({ error: 'Plan not found or unauthorized' });
     }
+
+    // Remove all UserPlan associations
+    await UserPlan.deleteMany({ plan: id });
+
     res.status(204).send();
   } catch (error) {
-    console.error('Failed to delete plan:', error);
     res.status(500).json({ error: 'Failed to delete plan' });
   }
 });
 
-// Create a new chapter
+// Chapter routes
 router.post('/admin/chapters', async (req, res) => {
   const { planId, title, introduction, overview, admin } = req.body;
 
@@ -168,12 +194,10 @@ router.post('/admin/chapters', async (req, res) => {
     await newChapter.save();
     res.status(201).json(newChapter);
   } catch (error) {
-    console.error('Failed to create chapter:', error); // Improved logging
     res.status(500).json({ error: 'Failed to create chapter' });
   }
 });
 
-// Fetch all chapters created by an admin
 router.get('/admin/all-chapters', async (req, res) => {
   const { adminId } = req.query;
   try {
@@ -184,7 +208,6 @@ router.get('/admin/all-chapters', async (req, res) => {
   }
 });
 
-// Update Chapter route
 router.put('/admin/chapters/:id', async (req, res) => {
   const { id } = req.params;
   const { title, introduction, overview, adminId } = req.body;
@@ -200,14 +223,11 @@ router.put('/admin/chapters/:id', async (req, res) => {
   }
 });
 
-// Delete or Unlink Chapter route
 router.delete('/admin/chapters/:id', async (req, res) => {
   const { id } = req.params;
-  const { adminId, action, planId } = req.body; // action can be 'delete' or 'unlink'
+  const { adminId, action } = req.body; // action can be 'delete' or 'unlink'
 
   try {
-    console.log(`Received request to ${action} chapter with ID: ${id} by admin: ${adminId}`);
-
     if (action === 'delete') {
       // Delete chapter completely
       const deletedChapter = await Chapter.findOneAndDelete({ _id: id, admin: adminId });
@@ -228,22 +248,10 @@ router.delete('/admin/chapters/:id', async (req, res) => {
       res.status(400).json({ error: 'Invalid action' });
     }
   } catch (error) {
-    console.error('Failed to delete or unlink chapter:', error);
     res.status(500).json({ error: 'Failed to delete or unlink chapter' });
   }
 });
 
-router.get('/admin/chapters', async (req, res) => {
-  const { adminId } = req.query;
-  try {
-    const chapters = await Chapter.find({ admin: adminId });
-    res.json(chapters);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch chapters' });
-  }
-});
-
-// Get chapters for a specific plan
 router.get('/plans/:planId/chapters', async (req, res) => {
   const { planId } = req.params;
   try {
@@ -257,7 +265,6 @@ router.get('/plans/:planId/chapters', async (req, res) => {
 // Lesson routes
 router.post('/admin/lessons', async (req, res) => {
   const { chapterId, title, content, adminId } = req.body;
-  // Validate the incoming request
   if (!chapterId || !title || !content) {
     return res.status(400).json({ error: 'All fields are required' });
   }
@@ -266,7 +273,7 @@ router.post('/admin/lessons', async (req, res) => {
     await lesson.save();
     res.status(201).json(lesson);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create lesson' });
+    res.status500().json({ error: 'Failed to create lesson' });
   }
 });
 
@@ -284,23 +291,23 @@ router.put('/admin/lessons/:id', async (req, res) => {
   const { id } = req.params;
   const { title, content, adminId } = req.body;
   try {
-    const lesson = await Lesson.findOneAndUpdate({ _id: id, admin: adminId }, { title, content }, { new: true });
+    const lesson = await Lesson.findOneAndUpdate(
+      { _id: id, admin: adminId },
+      { title, content },
+      { new: true }
+    );
     res.json(lesson);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update lesson' });
   }
 });
 
-// Delete or Unlink Lesson route
 router.delete('/admin/lessons/:id', async (req, res) => {
   const { id } = req.params;
-  const { adminId, action, chapterId } = req.body; // action can be 'delete' or 'unlink'
+  const { adminId, action } = req.body; // action can be 'delete' or 'unlink'
 
   try {
-    console.log(`Received request to ${action} lesson with ID: ${id} by admin: ${adminId}`);
-
     if (action === 'delete') {
-      // Delete lesson completely
       const deletedLesson = await Lesson.findOneAndDelete({ _id: id, admin: adminId });
       if (!deletedLesson) {
         return res.status(404).json({ error: 'Lesson not found or unauthorized' });
@@ -311,7 +318,6 @@ router.delete('/admin/lessons/:id', async (req, res) => {
       if (!lesson) {
         return res.status(404).json({ error: 'Lesson not found' });
       }
-      // Unlink the lesson from the chapter
       lesson.chapterId = null;
       await lesson.save();
       res.status(200).json({ message: 'Lesson unlinked from chapter' });
@@ -319,12 +325,9 @@ router.delete('/admin/lessons/:id', async (req, res) => {
       res.status(400).json({ error: 'Invalid action' });
     }
   } catch (error) {
-    console.error('Failed to delete or unlink lesson:', error);
     res.status(500).json({ error: 'Failed to delete or unlink lesson' });
   }
 });
-
-
 
 // Topic routes
 router.post('/admin/topics', async (req, res) => {
@@ -352,23 +355,23 @@ router.put('/admin/topics/:id', async (req, res) => {
   const { id } = req.params;
   const { title, content, adminId } = req.body;
   try {
-    const topic = await Topic.findOneAndUpdate({ _id: id, admin: adminId }, { title, content }, { new: true });
+    const topic = await Topic.findOneAndUpdate(
+      { _id: id, admin: adminId },
+      { title, content },
+      { new: true }
+    );
     res.json(topic);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update topic' });
   }
 });
 
-// Delete or Unlink Topic route
 router.delete('/admin/topics/:id', async (req, res) => {
   const { id } = req.params;
-  const { adminId, action, lessonId } = req.body; // action can be 'delete' or 'unlink'
+  const { adminId, action } = req.body; // action can be 'delete' or 'unlink'
 
   try {
-    console.log(`Received request to ${action} topic with ID: ${id} by admin: ${adminId}`);
-
     if (action === 'delete') {
-      // Delete topic completely
       const deletedTopic = await Topic.findOneAndDelete({ _id: id, admin: adminId });
       if (!deletedTopic) {
         return res.status(404).json({ error: 'Topic not found or unauthorized' });
@@ -379,7 +382,6 @@ router.delete('/admin/topics/:id', async (req, res) => {
       if (!topic) {
         return res.status(404).json({ error: 'Topic not found' });
       }
-      // Unlink the topic from the lesson
       topic.lessonId = null;
       await topic.save();
       res.status(200).json({ message: 'Topic unlinked from lesson' });
@@ -387,12 +389,11 @@ router.delete('/admin/topics/:id', async (req, res) => {
       res.status(400).json({ error: 'Invalid action' });
     }
   } catch (error) {
-    console.error('Failed to delete or unlink topic:', error);
     res.status(500).json({ error: 'Failed to delete or unlink topic' });
   }
 });
 
-// Fetch quizzes by contextId
+// Quiz routes
 router.get('/quizzes', async (req, res) => {
   const { contextId } = req.query;
   try {
@@ -403,14 +404,8 @@ router.get('/quizzes', async (req, res) => {
   }
 });
 
-// Create a new quiz
 router.post('/admin/quizzes', async (req, res) => {
   const { contextId, contextType, title, questions, googleFormUrl, adminId } = req.body;
-  console.log(req.body);
-  console.log(contextId);
-  console.log(contextType);
-  console.log(title);
-  console.log(adminId);
   if (!contextId || !contextType || !title || !adminId) {
     return res.status(400).json({ error: 'contextId, contextType, title, and adminId are required' });
   }
@@ -427,11 +422,9 @@ router.post('/admin/quizzes', async (req, res) => {
     await newQuiz.save();
     res.status(201).json(newQuiz);
   } catch (error) {
-    console.error('Failed to create quiz:', error);
     res.status(500).json({ error: 'Failed to create quiz' });
   }
 });
-
 
 router.get('/admin/quizzes', async (req, res) => {
   const { adminId } = req.query;
@@ -443,37 +436,138 @@ router.get('/admin/quizzes', async (req, res) => {
   }
 });
 
-router.post('/admin/context/:contextId/quizzes/:quizId', async (req, res) => {
-  const { contextId, quizId } = req.params;
+router.put('/admin/quizzes/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, questions, adminId } = req.body;
+  try {
+    const quiz = await Quiz.findOneAndUpdate(
+      { _id: id, admin: adminId },
+      { title, questions },
+      { new: true }
+    );
+    res.json(quiz);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update quiz' });
+  }
+});
+
+router.delete('/admin/quizzes/:id', async (req, res) => {
+  const { id } = req.params;
   const { adminId } = req.body;
   try {
-    let updatedContext;
-
-    switch (req.body.contextType) {
-      case 'plan':
-        updatedContext = await Plan.findByIdAndUpdate(contextId, { $push: { quizzes: quizId } }, { new: true });
-        break;
-      case 'chapter':
-        updatedContext = await Chapter.findByIdAndUpdate(contextId, { $push: { quizzes: quizId } }, { new: true });
-        break;
-      case 'lesson':
-        updatedContext = await Lesson.findByIdAndUpdate(contextId, { $push: { quizzes: quizId } }, { new: true });
-        break;
-      case 'topic':
-        updatedContext = await Topic.findByIdAndUpdate(contextId, { $push: { quizzes: quizId } }, { new: true });
-        break;
-      default:
-        return res.status(400).send('Invalid context type');
+    const deletedQuiz = await Quiz.findOneAndDelete({ _id: id, admin: adminId });
+    if (!deletedQuiz) {
+      return res.status(404).json({ error: 'Quiz not found or unauthorized' });
     }
-
-    if (!updatedContext) {
-      return res.status(404).json({ error: 'Context not found or unauthorized' });
-    }
-
-    res.status(200).json({ message: 'Quiz linked successfully' });
+    res.status(204).send();
   } catch (error) {
-    console.error('Failed to link quiz:', error);
-    res.status(500).json({ error: 'Failed to link quiz' });
+    res.status(500).json({ error: 'Failed to delete quiz' });
+  }
+});
+
+router.post('/admin/quizzes/:quizId/resequence', async (req, res) => {
+  const { quizId } = req.params;
+  const { questionIds } = req.body;
+
+  if (!questionIds || !Array.isArray(questionIds)) {
+    return res.status(400).json({ error: 'questionIds is required and should be an array' });
+  }
+
+  try {
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    // Update the sequence of questions
+    quiz.questions = questionIds;
+    await quiz.save();
+
+    res.status(200).json({ message: 'Questions resequenced successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to resequence questions' });
+  }
+});
+
+// Question routes
+router.post('/admin/questions', async (req, res) => {
+  const { quizIds, text, options, type, adminId } = req.body;
+  if (!quizIds || !text || !type || !adminId) {
+    return res.status(400).json({ error: 'quizIds, text, type, and adminId are required' });
+  }
+
+  try {
+    const newQuestion = new Question({
+      text,
+      type,
+      options: type === 'multiple-choice' ? options : undefined,
+      admin: adminId,
+      quizIds
+    });
+    await newQuestion.save();
+    res.status(201).json(newQuestion);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create question' });
+  }
+});
+
+router.get('/admin/questions', async (req, res) => {
+  const { adminId, quizId } = req.query;
+  try {
+    const query = { admin: adminId };
+    if (quizId) query.quizIds = quizId;
+
+    const questions = await Question.find(query);
+    res.json(questions);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch questions' });
+  }
+});
+
+router.put('/admin/questions/:id', async (req, res) => {
+  const { id } = req.params;
+  const { questionText, options, correctAnswer, adminId } = req.body;
+  try {
+    const question = await Question.findOneAndUpdate(
+      { _id: id, admin: adminId },
+      { questionText, options, correctAnswer },
+      { new: true }
+    );
+    res.json(question);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update question' });
+  }
+});
+
+router.delete('/admin/questions/:id', async (req, res) => {
+  const { id } = req.params;
+  const { adminId } = req.body;
+  try {
+    const deletedQuestion = await Question.findOneAndDelete({ _id: id, admin: adminId });
+    if (!deletedQuestion) {
+      return res.status(404).json({ error: 'Question not found or unauthorized' });
+    }
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete question' });
+  }
+});
+
+router.post('/admin/quizzes/:quizId/questions/:questionId', async (req, res) => {
+  const { quizId, questionId } = req.params;
+  const { adminId } = req.body;
+  try {
+    const quiz = await Quiz.findOneAndUpdate(
+      { _id: quizId, admin: adminId },
+      { $push: { questions: questionId } },
+      { new: true }
+    );
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found or unauthorized' });
+    }
+    res.status(200).json({ message: 'Question linked successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to link question' });
   }
 });
 
@@ -509,242 +603,4 @@ router.post('/admin/context/:contextType/:contextId/link', async (req, res) => {
   }
 });
 
-
-router.put('/admin/quizzes/:id', async (req, res) => {
-  const { id } = req.params;
-  const { title, questions, adminId } = req.body;
-  try {
-    const quiz = await Quiz.findOneAndUpdate({ _id: id, admin: adminId }, { title, questions }, { new: true });
-    res.json(quiz);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update quiz' });
-  }
-});
-
-router.delete('/admin/quizzes/:id', async (req, res) => {
-  const { id } = req.params;
-  const { adminId } = req.body;
-  try {
-    const deletedQuiz = await Quiz.findOneAndDelete({ _id: id, admin: adminId });
-    if (!deletedQuiz) {
-      return res.status(404).json({ error: 'Quiz not found or unauthorized' });
-    }
-    res.status(204).send();
-  } catch (error) {
-    console.error('Failed to delete quiz:', error);
-    res.status(500).json({ error: 'Failed to delete quiz' });
-  }
-});
-
-// Create Question
-router.post('/admin/questions', async (req, res) => {
-  const { quizIds, text, options, type, adminId } = req.body;
-
-
-
-  if (!quizIds || !text || !type || !adminId) {
-    return res.status(400).json({ error: 'quizIds, text, type, and adminId are required err ' });
-  }
-
-  try {
-    const newQuestion = new Question({
-      text,
-      type,
-      options: type === 'multiple-choice' ? options : undefined,
-      admin: adminId,
-      quizIds
-    });
-    await newQuestion.save();
-    res.status(201).json(newQuestion);
-  } catch (error) {
-    console.error('Failed to create question api:', error);
-    res.status(500).json({ error: 'Failed to create question' });
-  }
-});
-
-router.post('/admin/quizzes/:quizId/resequence', async (req, res) => {
-  const { quizId } = req.params;
-  const { questionIds } = req.body;
-
-  if (!questionIds || !Array.isArray(questionIds)) {
-    return res.status(400).json({ error: 'questionIds is required and should be an array' });
-  }
-
-  try {
-    const quiz = await Quiz.findById(quizId);
-    if (!quiz) {
-      return res.status(404).json({ error: 'Quiz not found' });
-    }
-
-    // Update the sequence of questions
-    quiz.questions = questionIds;
-    await quiz.save();
-
-    res.status(200).json({ message: 'Questions resequenced successfully' });
-  } catch (error) {
-    console.error('Failed to resequence questions:', error);
-    res.status(500).json({ error: 'Failed to resequence questions' });
-  }
-});
-
-
-router.post('/register', async (req, res) => {
-  const { username, email, password, role } = req.body;
-
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      username,
-      email,
-      password: hashedPassword,
-      role: role || 'regular' // Ensure role is set to 'regular' if not provided
-    });
-
-    await newUser.save();
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get('/admin/questions', async (req, res) => {
-  const { adminId, quizId } = req.query;
-  try {
-    const query = { admin: adminId };
-    if (quizId) query.quizIds = quizId; // Assuming questions store an array of quizIds they belong to
-
-    const questions = await Question.find(query);
-    res.json(questions);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch questions' });
-  }
-});
-
-router.put('/admin/questions/:id', async (req, res) => {
-  const { id } = req.params;
-  const { questionText, options, correctAnswer, adminId } = req.body;
-  try {
-    const question = await Question.findOneAndUpdate({ _id: id, admin: adminId }, { questionText, options, correctAnswer }, { new: true });
-    res.json(question);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update question' });
-  }
-});
-
-router.put('/unlink-question', async (req, res) => {
-  const { contextId, questionId, contextType } = req.body;
-  
-  try {
-    let updatedContext;
-
-    switch (contextType) {
-      case 'plan':
-        updatedContext = await Plan.findByIdAndUpdate(contextId, { $pull: { questions: questionId } }, { new: true });
-        break;
-      case 'chapter':
-        updatedContext = await Chapter.findByIdAndUpdate(contextId, { $pull: { questions: questionId } }, { new: true });
-        break;
-      case 'lesson':
-        updatedContext = await Lesson.findByIdAndUpdate(contextId, { $pull: { questions: questionId } }, { new: true });
-        break;
-      case 'topic':
-        updatedContext = await Topic.findByIdAndUpdate(contextId, { $pull: { questions: questionId } }, { new: true });
-        break;
-      default:
-        return res.status(400).send('Invalid context type');
-    }
-
-    if (!updatedContext) {
-      return res.status(404).send('Context not found');
-    }
-
-    res.status(200).json(updatedContext);
-  } catch (error) {
-    console.error('Error unlinking question:', error);
-    res.status(500).send('Server error');
-  }
-});
-
-// Question routes
-router.delete('/admin/questions/:id', async (req, res) => {
-  const { id } = req.params;
-  const { adminId } = req.body;
-  try {
-    const deletedQuestion = await Question.findOneAndDelete({ _id: id, admin: adminId });
-    if (!deletedQuestion) {
-      return res.status(404).json({ error: 'Question not found or unauthorized' });
-    }
-    res.status(204).send();
-  } catch (error) {
-    console.error('Failed to delete question:', error);
-    res.status(500).json({ error: 'Failed to delete question' });
-  }
-});
-
-router.delete('/admin/:contextType/:contextId/questions/:questionId', async (req, res) => {
-  const { contextId, questionId, contextType } = req.params;
-  const { adminId } = req.body;
-  try {
-    let updatedContext;
-
-    switch (contextType) {
-      case 'plan':
-        updatedContext = await Plan.findByIdAndUpdate(contextId, { $pull: { questions: questionId } }, { new: true });
-        break;
-      case 'chapter':
-        updatedContext = await Chapter.findByIdAndUpdate(contextId, { $pull: { questions: questionId } }, { new: true });
-        break;
-      case 'lesson':
-        updatedContext = await Lesson.findByIdAndUpdate(contextId, { $pull: { questions: questionId } }, { new: true });
-        break;
-      case 'topic':
-        updatedContext = await Topic.findByIdAndUpdate(contextId, { $pull: { questions: questionId } }, { new: true });
-        break;
-      default:
-        return res.status(400).send('Invalid context type');
-    }
-
-    if (!updatedContext) {
-      return res.status(404).send('Context not found or unauthorized');
-    }
-
-    res.status(200).json(updatedContext);
-  } catch (error) {
-    console.error('Error unlinking question:', error);
-    res.status(500).send('Server error');
-  }
-});
-
-router.post('/admin/quizzes/:quizId/questions/:questionId', async (req, res) => {
-  const { quizId, questionId } = req.params;
-  const { adminId } = req.body;
-  try {
-    const quiz = await Quiz.findOneAndUpdate({ _id: quizId, admin: adminId }, { $push: { questions: questionId } }, { new: true });
-    if (!quiz) {
-      return res.status(404).json({ error: 'Quiz not found or unauthorized' });
-    }
-    res.status(200).json({ message: 'Question linked successfully' });
-  } catch (error) {
-    console.error('Failed to link question:', error);
-    res.status(500).json({ error: 'Failed to link question' });
-  }
-});
-
-
-// Fetch translations
-/*
-router.get('/admin/translations', async (req, res) => {
-  try {
-    console.log('getting translation');
-    const translations = await Translation.find();
-    res.json(translations);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch translations' });
-  }
-});
-*/
 module.exports = router;

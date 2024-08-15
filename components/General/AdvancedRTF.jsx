@@ -1,59 +1,67 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { WebView } from 'react-native-webview';
 import { View, StyleSheet } from 'react-native';
 
 const AdvancedRTF = ({ content, onContentChange }) => {
   const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Rich Text Editor</title>
-      <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-      <style>
-        #editor {
-          height: 100%;
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rich Text Editor</title>
+    <link href="https://cdn.syncfusion.com/ej2/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/dist/ej2.min.js"></script>
+    <style>
+      #defaultRTE {
+        height: 300px;
+        box-sizing: border-box;
+      }
+      .e-toolbar {
+        height: 100px; /* Increase this value to make the toolbar larger */
+      }
+      .e-toolbar-item .e-btn {
+        height: 40px; /* Increase the button size accordingly */
+        line-height: 40px;
+      }
+      body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="defaultRTE"></div>
+    <script>
+      var defaultRTE = new ej.richtexteditor.RichTextEditor({
+        toolbarSettings: {
+          items: [
+            'Bold', 'Italic', 'Underline', 'StrikeThrough', '|',
+            'FontName', 'FontSize', 'FontColor', 'BackgroundColor', '|',
+            'Formats', 'Alignments', 'OrderedList', 'UnorderedList', '|',
+            'Outdent', 'Indent', 'CreateLink', 'Image', 'CreateTable', '|',
+            'SourceCode', 'Undo', 'Redo'
+          ]
+        },
+        value: \`${content}\`,
+        height: 300,
+        change: function (args) {
+          window.ReactNativeWebView.postMessage(args.value);
         }
-        body, html {
-          height: 100%;
-          margin: 0;
-          padding: 0;
-        }
-      </style>
-    </head>
-    <body>
-      <div id="toolbar">
-        <button class="ql-bold"></button>
-        <button class="ql-italic"></button>
-        <button class="ql-underline"></button>
-        <button class="ql-link"></button>
-        <button class="ql-image"></button>
-        <button class="ql-list" value="ordered"></button>
-        <button class="ql-list" value="bullet"></button>
-      </div>
-      <div id="editor">${content}</div>
-      <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-      <script>
-        const editor = new Quill('#editor', {
-          modules: {
-            toolbar: '#toolbar'
-          },
-          theme: 'snow'
-        });
+      });
+      defaultRTE.appendTo('#defaultRTE');
+    </script>
+  </body>
+  </html>
+`;
 
-        // Set initial content
-        editor.root.innerHTML = \`${content}\`;
 
-        // Listen for text-change events
-        editor.on('text-change', function() {
-          const html = editor.root.innerHTML;
-          window.ReactNativeWebView.postMessage(html);
-        });
-      </script>
-    </body>
-    </html>
-  `;
+
+  useEffect(() => {
+    // Optionally, content updates or initialization actions
+  }, [content]);
 
   return (
     <View style={styles.container}>
@@ -71,7 +79,7 @@ const AdvancedRTF = ({ content, onContentChange }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 300,
+    height: 300,  // Adjust height as needed
     marginVertical: 10,
   },
   webview: {

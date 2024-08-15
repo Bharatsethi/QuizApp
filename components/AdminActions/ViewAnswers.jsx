@@ -17,6 +17,7 @@ const ViewAnswers = ({ route }) => {
         const response = await fetchAnswers(quizId);
         setAnswers(response.data);
       } catch (error) {
+        console.error('Error fetching answers:', error);
         Alert.alert(translations.error || 'Error', translations.failedToFetchAnswers || 'Failed to fetch answers');
       } finally {
         setLoading(false);
@@ -36,6 +37,15 @@ const ViewAnswers = ({ route }) => {
     );
   }
 
+  if (answers.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <Text style={styles.noPlansText}>{translations.noAnswers || 'No answers available.'}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Header />
@@ -44,12 +54,13 @@ const ViewAnswers = ({ route }) => {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <View style={styles.answerItem}>
-            <Text style={styles.answerText}>{`${item.userId.username}: ${item.answers}`}</Text>
+            <Text style={styles.answerText}>
+              {`${item.userId?.username || translations.anonymous || 'Anonymous'}: ${item.answers}`}
+            </Text>
           </View>
         )}
         contentContainerStyle={styles.contentContainer}
       />
-      {answers.length === 0 && <Text style={styles.noPlansText}>{translations.noAnswers || 'No answers available.'}</Text>}
     </View>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert, FlatList } from 'react-native';
-import { fetchChaptersByAdmin, createChapter } from '../../services/api';
+import { fetchChaptersByAdmin, linkChapterToPlan } from '../../services/api';  // Assuming you have a `linkChapterToPlan` function
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
 import { UserContext } from '../../context/UserContext';
@@ -25,12 +25,12 @@ const AddExistingChapter = ({ route, navigation }) => {
     };
 
     loadExistingChapters();
-  }, [user.id]);
+  }, [user.userId]);
 
   const handleAddExistingChapter = async (chapter) => {
     try {
-      const response = await createChapter({ ...chapter, planId, admin: user.id });
-      if (response.status === 201) {
+      const response = await linkChapterToPlan(planId, chapter._id, user.userId);  // Assuming you have this API
+      if (response.status === 200) {
         Alert.alert(translations.success || 'Success', `${translations.chapter || 'Chapter'} ${translations.addedSuccessfully || 'added successfully'}`);
         navigation.navigate('ManageChapters', { plan: { _id: planId } });
       } else {

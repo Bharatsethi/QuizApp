@@ -9,14 +9,8 @@ import Login from './components/UserActions/Login';
 import Register from './components/UserActions/Register';
 import ForgotPassword from './components/UserActions/ForgotPassword';
 import { Text } from 'react-native'; // Import Text for Suspense fallback
-//import { registerLicense } from '@syncfusion/ej2-base';
-
-//LogBox.ignoreLogs(['window.addEventListener']); // Ignore this specific warning
 
 const Stack = createStackNavigator();
-
-// Register the license key at the start of your application
-//registerLicense('Ngo9BigBOggjHTQxAR8/V1NCaF5cXmZCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdnWXdfdHRdQmVYWUJ+Vks=');
 
 const screenOptions = {
   headerShown: false,
@@ -58,6 +52,9 @@ const AdminScreens = [
   { name: 'EditMessage', component: React.lazy(() => import('./components/AdminActions/EditMessage')) },
   { name: 'EditQuiz', component: React.lazy(() => import('./components/AdminActions/EditQuiz')) },
   { name: 'EditQuestion', component: React.lazy(() => import('./components/AdminActions/EditQuestion')) },
+
+  // Add PlanDetails screen for Admin flow
+  { name: 'PlanDetails', component: React.lazy(() => import('./components/UserActions/PlanDetails')) },
 ];
 
 const SuperAdminScreens = [
@@ -66,6 +63,9 @@ const SuperAdminScreens = [
   { name: 'AddAdmin', component: React.lazy(() => import('./components/SuperAdminActions/AddAdmin')) },
   { name: 'ManageTranslations', component: React.lazy(() => import('./components/SuperAdminActions/ManageTranslations')) },
   { name: 'ManageMessages', component: React.lazy(() => import('./components/SuperAdminActions/ManageMessages')) },
+
+  // Add PlanDetails screen for SuperAdmin flow (if needed)
+  { name: 'PlanDetails', component: React.lazy(() => import('./components/UserActions/PlanDetails')) },
 ];
 
 const UserScreens = [

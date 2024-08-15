@@ -12,6 +12,7 @@ const Lesson = require('../models/Lesson');
 const Topic = require('../models/Topic');
 const Quiz = require('../models/Quiz');
 const Translation = require('../models/Translation');
+const UserPlan = require('../models/UserPlan'); // Import UserPlan model
 const SECRET_KEY = process.env.SECRET_KEY;
 const API_URL = process.env.API_URL;
 
@@ -26,9 +27,23 @@ router.get('/quiz/:quizId/answers', async (req, res) => {
   }
 });
 
+// Fetch user plans
+router.get('/plans', async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    const userPlans = await UserPlan.find({ user: userId }).populate('plan');
+    const plans = userPlans.map(userPlan => userPlan.plan);
+
+    res.json(plans);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch plans' });
+  }
+});
+
+// Health check route
 router.get('/health2', async (req, res) => {
   try {
-    // Attempt to fetch one record from the User collection
     const user = await User.findOne();
     if (user) {
       res.status(200).json({ message: 'Database connection is healthy2', user });
@@ -36,11 +51,9 @@ router.get('/health2', async (req, res) => {
       res.status(200).json({ message: 'Database connection is healthy, but no users found' });
     }
   } catch (error) {
-    console.error('Error connecting to the database:', error);
     res.status(500).json({ message: 'Error connecting to the database', error: error.message });
   }
 });
-
 
 // Submit quiz answers
 router.post('/quizzes/:quizId/submit', async (req, res) => {
@@ -109,16 +122,21 @@ router.get('/user/profile/:id', async (req, res) => {
 // Register a new user
 router.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    return res.status(400).send('User already exists');
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).send('User already exists');
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, password: hashedPassword, email });
+    await user.save();
+    res.status(201).send('User registered');
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ username, password: hashedPassword, email });
-  await user.save();
-  res.status(201).send('User registered');
 });
 
+// User login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -127,55 +145,53 @@ router.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      console.log('User not found:', email);
       return res.status(400).json({ error: 'Invalid email or password' });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.log('Password does not match for user:', email);
       return res.status(400).json({ error: 'Invalid email or password' });
     }
     const token = jwt.sign({ userId: user._id, role: user.role }, SECRET_KEY);
     res.json({ token });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-
-
 // Forgot password
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(400).send('User not found');
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).send('User not found');
 
-  const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: '1h' });
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: 'your-email@gmail.com',
-      pass: 'your-email-password',
-    },
-  });
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'your-email@gmail.com',
+        pass: 'your-email-password',
+      },
+    });
 
-  const mailOptions = {
-    from: 'support@poojabharta.com',
-    to: user.email,
-    subject: 'Password Reset',
-    text: `To reset your password, click the following link: http://${API_URL}/reset-password?token=${token}`,
-  };
+    const mailOptions = {
+      from: 'support@poojabharta.com',
+      to: user.email,
+      subject: 'Password Reset',
+      text: `To reset your password, click the following link: http://${API_URL}/reset-password?token=${token}`,
+    };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-      res.status(500).send('Error sending email');
-    } else {
-      res.status(200).send('Password reset email sent');
-    }
-  });
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        res.status(500).send('Error sending email');
+      } else {
+        res.status(200).send('Password reset email sent');
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Reset password
@@ -204,7 +220,7 @@ router.get('/plans', async (req, res) => {
 // Request access to a plan (dummy endpoint for now)
 router.post('/plans/:planId/request-access', async (req, res) => {
   const { planId } = req.params;
-  const { userId } = req.body; // Assuming the request contains the userId
+  const { userId } = req.body;
   try {
     // Logic to handle request access (e.g., saving request in a separate collection)
     res.status(200).json({ message: 'Access request submitted successfully' });
@@ -263,7 +279,6 @@ router.get('/admin/translations', async (req, res) => {
     const translations = await Translation.find();
     res.json(translations);
   } catch (error) {
-    console.error('Error fetching translations:', error);
     res.status(500).json({ error: 'Failed to fetch translations' });
   }
 });

@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { createQuiz } from '../../services/api';
 import Header from '../General/Header';
 import styles from '../General/styles';
@@ -13,6 +13,7 @@ const AddQuiz = ({ navigation, route }) => {
   const [title, setTitle] = useState('');
   const [questions, setQuestions] = useState([]);
   const [googleFormUrl, setGoogleFormUrl] = useState('');
+  const [loading, setLoading] = useState(false); // Add loading state
   const { translations } = useContext(TranslationContext);
 
   const handleAddQuestion = () => {
@@ -38,6 +39,17 @@ const AddQuiz = ({ navigation, route }) => {
   };
 
   const handleAddQuiz = async () => {
+    if (!title.trim()) {
+      Alert.alert(translations?.error || 'Error', 'Quiz title is required');
+      return;
+    }
+
+    if (questions.some(q => !q.text || (q.options.length && q.options.some(o => !o)))) {
+      Alert.alert(translations?.error || 'Error', 'Please fill in all question fields and options');
+      return;
+    }
+
+    setLoading(true); // Start loading
     try {
       const adminId = user?.userId;
       if (!adminId) {
@@ -55,6 +67,8 @@ const AddQuiz = ({ navigation, route }) => {
     } catch (error) {
       console.error('Add quiz error:', error.response ? error.response.data : error.message);
       Alert.alert(translations?.error || 'Error', `${translations?.failedToAdd || 'Failed to add'} ${translations?.quiz?.toLowerCase() || 'quiz'}`);
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -107,15 +121,19 @@ const AddQuiz = ({ navigation, route }) => {
         onChangeText={setGoogleFormUrl}
         placeholder="Enter Google Form URL (optional)"
       />
-      <View style={styles.superbuttonContainer}>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleAddQuiz}>
-          <Text style={styles.buttonText}>{translations?.add || 'Add'} {translations?.quiz || 'Quiz'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>{translations?.cancel || 'Cancel'}</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.superbuttonContainer}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#fff" />
+      ) : (
+        <View style={styles.superButtonContainer}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleAddQuiz}>
+            <Text style={styles.buttonText}>{translations?.add || 'Add'} {translations?.quiz || 'Quiz'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.buttonText}>{translations?.cancel || 'Cancel'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <View style={styles.superButtonContainer}>
         <TouchableOpacity style={styles.addButton} onPress={handleAddQuestion}>
           <Icon name="plus" size={16} color="#fff" style={styles.buttonIcon} />
           <Text style={styles.buttonText}>{translations?.add || 'Add'} {translations?.question || 'Question'}</Text>

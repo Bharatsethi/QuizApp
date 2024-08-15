@@ -1,6 +1,5 @@
-// LessonList.jsx
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert, ActivityIndicator } from 'react-native';
 import { fetchLessons } from '../../services/api';
 import Header from '../General/Header';
 import styles from '../General/styles';
@@ -9,6 +8,7 @@ import { TranslationContext } from '../../context/TranslationContext';
 const LessonList = ({ route, navigation }) => {
   const { chapterId } = route.params;
   const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
@@ -19,6 +19,8 @@ const LessonList = ({ route, navigation }) => {
       } catch (error) {
         console.error('Failed to fetch lessons:', error);
         Alert.alert(translations.error || 'Error', translations.failedToFetchLessons || `Failed to fetch ${translations.lesson.toLowerCase()}s`);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -41,14 +43,17 @@ const LessonList = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Header />
-      <Text style={styles.sectionTitle}>{translations.lesson}s</Text>
-      <FlatList
-        data={lessons}
-        keyExtractor={(item) => item._id}
-        renderItem={renderLessonItem}
-        contentContainerStyle={styles.contentContainer}
-        ListEmptyComponent={<Text style={styles.emptyListText}>No {translations.lesson.toLowerCase()}s found.</Text>}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={lessons}
+          keyExtractor={(item) => item._id}
+          renderItem={renderLessonItem}
+          contentContainerStyle={styles.contentContainer}
+          ListEmptyComponent={<Text style={styles.emptyListText}>{translations.noLessons || `No ${translations.lesson.toLowerCase()}s found.`}</Text>}
+        />
+      )}
     </View>
   );
 };

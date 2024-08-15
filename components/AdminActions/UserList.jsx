@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Alert } from 'react-native';
-import axios from 'axios';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, ActivityIndicator } from 'react-native';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fetchUsers, deleteUser, updateUser } from '../../services/api';
@@ -11,6 +10,7 @@ const UserList = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
@@ -18,12 +18,15 @@ const UserList = ({ navigation }) => {
   }, []);
 
   const fetchUsersData = async () => {
+    setLoading(true);
     try {
       const response = await fetchUsers();
       setUsers(response.data);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       Alert.alert(translations.error || 'Error', translations.failedToFetchUsers || 'Failed to fetch users.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,6 +47,12 @@ const UserList = ({ navigation }) => {
   };
 
   const handleSaveChanges = async () => {
+    if (!selectedUser.username || !selectedUser.email) {
+      Alert.alert(translations.error || 'Error', translations.fillAllFields || 'Please fill all fields');
+      return;
+    }
+
+    setLoading(true);
     try {
       await updateUser(selectedUser._id, selectedUser);
       Alert.alert(translations.success || 'Success', translations.userUpdatedSuccessfully || 'User updated successfully');
@@ -52,6 +61,8 @@ const UserList = ({ navigation }) => {
     } catch (error) {
       console.error('Update user error:', error);
       Alert.alert(translations.error || 'Error', translations.failedToUpdateUser || 'Failed to update user.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,13 +84,17 @@ const UserList = ({ navigation }) => {
     <View style={styles.container}>
       <Header />
       <Text style={styles.sectionTitle}>{translations.manage} {translations.users || 'Users'}</Text>
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item._id}
-        renderItem={renderUserItem}
-        contentContainerStyle={styles.plansList}
-      />
-      {showEditModal && (
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={users}
+          keyExtractor={(item) => item._id}
+          renderItem={renderUserItem}
+          contentContainerStyle={styles.plansList}
+        />
+      )}
+      {showEditModal && selectedUser && (
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>{translations.editUser || 'Edit User'}</Text>
           <TextInput
@@ -102,8 +117,8 @@ const UserList = ({ navigation }) => {
             secureTextEntry
           />
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.primaryButton} onPress={handleSaveChanges}>
-              <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleSaveChanges} disabled={loading}>
+              {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>}
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelButton} onPress={() => setShowEditModal(false)}>
               <Text style={styles.buttonText}>{translations.cancel}</Text>

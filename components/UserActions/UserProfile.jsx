@@ -4,9 +4,7 @@ import axios from 'axios';
 import Header from '../General/Header';
 import { TranslationContext } from '../../context/TranslationContext';
 import styles from '../General/styles';
-import axios from 'axios';
 import { API_URL } from '@env';
-//import dotenv from 'dotenv';
 
 const UserProfile = ({ route }) => {
   const { userId } = route.params;
@@ -16,22 +14,17 @@ const UserProfile = ({ route }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  // Load environment variables from .env file
-  // dotenv.config();
-  // Use the API URL from the .env file or default to a specific URL if not set
-  // const API_URL = 'http://192.168.0.232:3002';
-  // process.env.API_URL || 'http://192.168.0.232:3002';
-  // Create an instance of axios
+
+  // Create an instance of axios with baseURL
   const apiClient = axios.create({
     baseURL: API_URL,
   });
-
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${API_URL}/user/profile/${userId}`);
+        const response = await apiClient.get(`/user/profile/${userId}`);
         setUser(response.data);
         setName(response.data.name);
         setEmail(response.data.email);
@@ -53,7 +46,7 @@ const UserProfile = ({ route }) => {
     }
 
     try {
-      await axios.put(`${API_URL}/user/profile`, { userId, name, email, password });
+      await apiClient.put(`/user/profile`, { userId, name, email, password });
       Alert.alert(translations.success, translations.profileUpdatedSuccessfully);
     } catch (error) {
       console.error('Error updating profile:', error);

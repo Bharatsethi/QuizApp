@@ -1,61 +1,76 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { fetchTopics } from '../../services/api';
+import { View, Text, FlatList, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { fetchQuizzesByTopicId } from '../../services/api';
 import Header from '../General/Header';
-import styles from '../General/styles';
 import { TranslationContext } from '../../context/TranslationContext';
+import { UserContext } from '../../context/UserContext';
+import styles from '../General/styles';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const ViewTopics = ({ route, navigation }) => {
-  const { lessonId } = route.params;
-  const [topics, setTopics] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { topicId } = route.params;
+  const [quizzes, setQuizzes] = useState([]);
+  const [content, setContent] = useState('');
   const { translations } = useContext(TranslationContext);
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetchTopics(lessonId);
-        setTopics(response.data);
+        const response = await fetchQuizzesByTopicId(topicId);
+        setQuizzes(response.data.quizzes);
+        setContent(response.data.content);
       } catch (error) {
-        Alert.alert(translations.error, translations.failedToFetchTopics);
-      } finally {
-        setLoading(false);
+        Alert.alert(translations.error, translations.failedToFetchQuizzes);
       }
     };
 
     fetchData();
-  }, [lessonId, translations.error, translations.failedToFetchTopics]);
+  }, [topicId, translations.error, translations.failedToFetchQuizzes]);
 
-  const handleViewTopicContent = (topic) => {
-    navigation.navigate('ViewTopicContent', { topicId: topic._id });
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Header />
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>{translations.loading}</Text>
-      </View>
-    );
-  }
+  const renderQuizItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.quizItem}
+      onPress={() => navigation.navigate('ViewQuiz', { quizId: item._id })}
+    >
+      <Text style={styles.quizText}>{item.title}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <Header />
-      <FlatList
-        data={topics}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleViewTopicContent(item)}>
-            <View style={styles.topicItem}>
-              <Text style={styles.topicText}>{item.title}</Text>
-            </View>
-          </TouchableOpacity>
+      <ScrollView>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Icon name="arrow-left" size={16} color="#fff" />
+          <Text style={styles.backButtonText}>
+            {translations.backToPrevious || 'Back'}
+          </Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>
+          {translations.topicDetails || 'Topic Details'}
+        </Text>
+        <Text style={styles.contentText}>{content}</Text>
+
+        <Text style={styles.subheading}>
+          {translations.linkedQuizzes || 'Linked Quizzes'}
+        </Text>
+        {quizzes.length === 0 ? (
+          <Text style={styles.noQuizzesText}>
+            {translations.noQuizzesAvailable || 'No quizzes available for this topic.'}
+          </Text>
+        ) : (
+          <FlatList
+            data={quizzes}
+            keyExtractor={(item) => item._id}
+            renderItem={renderQuizItem}
+            contentContainerStyle={styles.contentContainer}
+          />
         )}
-        contentContainerStyle={styles.contentContainer}
-      />
-      {topics.length === 0 && <Text style={styles.noItemsText}>{translations.noTopicsAvailable}</Text>}
+      </ScrollView>
     </View>
   );
 };

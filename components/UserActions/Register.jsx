@@ -70,13 +70,15 @@ const Register = ({ navigation }) => {
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
-          <View style={styles.superbuttonContainer}>
+          <View style={styles.superButtonContainer}>
             <TouchableOpacity style={styles.primaryButton} onPress={handleRegister}>
               <Text style={styles.buttonText}>{translations.register}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.navigate('Login')}>
-              <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.buttonText}>{translations.backToLogin}</Text>
+              <View style={styles.buttonContent}>
+                <Icon name="arrow-left" size={16} color="#fff" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>{translations.backToLogin}</Text>
+              </View>
             </TouchableOpacity>
           </View>
         )}

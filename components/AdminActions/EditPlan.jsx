@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useContext, useCallback } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { updatePlan } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -11,14 +11,16 @@ const EditPlan = ({ route, navigation }) => {
   const { plan } = route.params;
   const [title, setTitle] = useState(plan.title);
   const [description, setDescription] = useState(plan.description);
+  const [loading, setLoading] = useState(false);
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext); // Get the logged-in user's context
 
-  const handleEditPlan = async () => {
+  const handleEditPlan = useCallback(async () => {
     if (!title || !description) {
       Alert.alert(translations.error || 'Error', translations.fillAllFields || 'Please fill all fields');
       return;
     }
+    setLoading(true);
     try {
       const response = await updatePlan(plan._id, { title, description, adminId: user.userId }); // Include adminId
       if (response.status === 200) {
@@ -31,8 +33,10 @@ const EditPlan = ({ route, navigation }) => {
     } catch (error) {
       console.error('Update error:', error.response ? error.response.data : error.message);
       Alert.alert(translations.error || 'Error', `${translations.failedToUpdate || 'Failed to update'} ${translations.plan?.toLowerCase() || 'plan'}`);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [title, description, translations, user.userId, navigation, plan._id]);
 
   return (
     <View style={styles.container}>
@@ -55,10 +59,10 @@ const EditPlan = ({ route, navigation }) => {
         placeholder={`${translations.enter || 'Enter'} ${translations.plan?.toLowerCase() || 'plan'} ${translations.description?.toLowerCase() || 'description'}`}
       />
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleEditPlan}>
-          <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleEditPlan} disabled={loading}>
+          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>{translations.saveChanges || 'Save Changes'}</Text>}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()} disabled={loading}>
           <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
         </TouchableOpacity>
       </View>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, TouchableOpacity, Alert, Modal, Button } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Modal, Button, ActivityIndicator } from 'react-native';
 import { fetchQuizzes, deleteQuiz, linkQuizToContext } from '../../services/api';
 import Header from '../General/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -14,6 +14,7 @@ const ManageQuizzes = ({ route, navigation }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [availableQuizzes, setAvailableQuizzes] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true); // Loading state
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
   const { setCurrentQuizId } = useContext(NavigationContext);
@@ -39,6 +40,8 @@ const ManageQuizzes = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to fetch quizzes:', error);
       Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -72,12 +75,15 @@ const ManageQuizzes = ({ route, navigation }) => {
 
   const handleLinkQuiz = async () => {
     try {
+      setLoading(true);
       const response = await fetchQuizzes(); // Fetch all quizzes to filter out already linked ones
       const nonLinkedQuizzes = response.data.filter(quiz => !quizzes.some(q => q._id === quiz._id));
       setAvailableQuizzes(nonLinkedQuizzes);
       setModalVisible(true);
     } catch (error) {
       Alert.alert(translations.error || 'Error', translations.failedToFetchQuizzes || 'Failed to fetch quizzes');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,15 +113,21 @@ const ManageQuizzes = ({ route, navigation }) => {
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>{translations.selectQuiz || 'Select Quiz'}</Text>
-          <FlatList
-            data={availableQuizzes}
-            keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => linkSelectedQuiz(item._id)} style={styles.modalItem}>
-                <Text>{item.title}</Text>
-              </TouchableOpacity>
-            )}
-          />
+          {loading ? (
+            <ActivityIndicator size="large" color="#1E90FF" />
+          ) : availableQuizzes.length === 0 ? (
+            <Text style={styles.noQuizzesText}>{translations.noQuizzesAvailable || 'No available quizzes to link.'}</Text>
+          ) : (
+            <FlatList
+              data={availableQuizzes}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => linkSelectedQuiz(item._id)} style={styles.modalItem}>
+                  <Text>{item.title}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
           <Button title={translations.cancel || 'Cancel'} onPress={() => setModalVisible(false)} />
         </View>
       </View>
@@ -141,8 +153,10 @@ const ManageQuizzes = ({ route, navigation }) => {
         <Icon name="link" size={16} color="#fff" />
         <Text style={styles.addButtonText}>{translations.link || 'Link'} {translations.quiz || 'Quiz'}</Text>
       </TouchableOpacity>
-      {quizzes.length === 0 ? (
-        <Text style={styles.noQuizzesText}>{translations.noQuizzesAvailable || 'No quizzes available for this plan.'}</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#1E90FF" />
+      ) : quizzes.length === 0 ? (
+        <Text style={styles.noQuizzesText}>{translations.noQuizzesAvailable || 'No quizzes available for this context.'}</Text>
       ) : (
         <FlatList
           data={quizzes}

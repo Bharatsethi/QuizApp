@@ -1,5 +1,5 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { createQuestion, fetchQuestions } from '../../services/api';
 import Header from '../General/Header';
 import RichTextEditor from '../General/RichTextEditor';
@@ -13,6 +13,7 @@ const AddQuestion = ({ navigation }) => {
   const [questionText, setQuestionText] = useState('');
   const [options, setOptions] = useState([{ text: '', isCorrect: false }]);
   const [questionType, setQuestionType] = useState('multiple-choice');
+  const [loading, setLoading] = useState(false); // Add loading state
   const { translations } = useContext(TranslationContext);
   const { user } = useContext(UserContext);
   const { currentQuizId } = useContext(NavigationContext);
@@ -44,6 +45,12 @@ const AddQuestion = ({ navigation }) => {
       return;
     }
 
+    if (questionType === 'multiple-choice' && !options.some(option => option.isCorrect)) {
+      Alert.alert(translations.error || 'Error', 'Please select at least one correct option');
+      return;
+    }
+
+    setLoading(true); // Start loading
     try {
       const formattedOptions = options.map(option => ({
         text: option.text,
@@ -51,7 +58,7 @@ const AddQuestion = ({ navigation }) => {
       }));
 
       const response = await createQuestion({
-        quizIds: [currentQuizId], // Use currentQuizId from context
+        quizIds: [currentQuizId],
         text: questionText,
         options: questionType === 'multiple-choice' ? formattedOptions : undefined,
         type: questionType,
@@ -59,14 +66,16 @@ const AddQuestion = ({ navigation }) => {
       });
 
       if (response && response.status === 201) {
-        Alert.alert('Success', 'Question added successfully');
+        Alert.alert(translations.success || 'Success', translations.questionAddedSuccessfully || 'Question added successfully');
         navigation.goBack();
       } else {
-        Alert.alert('Error', 'Unable to get right response');
+        throw new Error('Failed to add question');
       }
     } catch (error) {
       console.error('Add question error:', error);
-      Alert.alert('Error', 'Failed to add question');
+      Alert.alert(translations.error || 'Error', translations.failedToAddQuestion || 'Failed to add question');
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -75,29 +84,29 @@ const AddQuestion = ({ navigation }) => {
       <Header />
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Icon name="arrow-left" size={16} color="#fff" />
-        <Text style={styles.backButtonText}>Back to Manage Questions</Text>
+        <Text style={styles.backButtonText}>{translations.backToManageQuestions || 'Back to Manage Questions'}</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Add {translations.question}</Text>
-      <Text style={styles.label}>Question Type:</Text>
+      <Text style={styles.title}>{translations.addQuestion || 'Add Question'}</Text>
+      <Text style={styles.label}>{translations.questionType || 'Question Type'}:</Text>
       <View style={styles.flexRow}>
         <TouchableOpacity
           style={questionType === 'multiple-choice' ? styles.selectedOption : styles.unselectedOption}
           onPress={() => setQuestionType('multiple-choice')}
         >
-          <Text style={styles.optionText}>Multiple Choice</Text>
+          <Text style={styles.optionText}>{translations.multipleChoice || 'Multiple Choice'}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={questionType === 'free-text' ? styles.selectedOption : styles.unselectedOption}
           onPress={() => setQuestionType('free-text')}
         >
-          <Text style={styles.optionText}>Free Text</Text>
+          <Text style={styles.optionText}>{translations.freeText || 'Free Text'}</Text>
         </TouchableOpacity>
       </View>
       <TextInput
         style={styles.input}
         value={questionText}
         onChangeText={setQuestionText}
-        placeholder={`Enter ${translations.question?.toLowerCase() || 'question'} text`}
+        placeholder={`${translations.enterQuestionText || 'Enter question text'}`}
       />
       {questionType === 'multiple-choice' && (
         <>
@@ -113,28 +122,34 @@ const AddQuestion = ({ navigation }) => {
                   style={option.isCorrect ? styles.correctButton : styles.incorrectButton}
                   onPress={() => handleOptionCorrectChange(index, !option.isCorrect)}
                 >
-                  <Text style={styles.buttonText}>{option.isCorrect ? 'Correct' : 'Incorrect'}</Text>
+                  <Text style={styles.buttonText}>{option.isCorrect ? translations.correct || 'Correct' : translations.incorrect || 'Incorrect'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.removeButton} onPress={() => handleRemoveOption(index)}>
                   <Icon name="minus" size={16} color="#fff" />
-                  <Text style={styles.buttonText}>Remove</Text>
+                  <Text style={styles.buttonText}>{translations.remove || 'Remove'}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ))}
           <TouchableOpacity style={styles.addButton} onPress={handleAddOption}>
             <Icon name="plus" size={16} color="#fff" />
-            <Text style={styles.buttonText}>Add Option</Text>
+            <Text style={styles.buttonText}>{translations.addOption || 'Add Option'}</Text>
           </TouchableOpacity>
         </>
       )}
-      <View style={styles.superbuttonContainer}>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleAddQuestion}>
-          <Text style={styles.buttonText}>Add {translations.question}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>{translations.cancel}</Text>
-        </TouchableOpacity>
+      <View style={styles.superButtonContainer}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#fff" />
+        ) : (
+          <>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleAddQuestion}>
+              <Text style={styles.buttonText}>{translations.addQuestion || 'Add Question'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+              <Text style={styles.buttonText}>{translations.cancel || 'Cancel'}</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </ScrollView>
   );
